@@ -1,5 +1,11 @@
 # DACK_OnlineLearningWEB
 
+## Cập nhật gần đây (enrollment + quiz)
+
+Xem chi tiết trong **[CAP-NHAT-ENROLLMENT-QUIZ.md](./CAP-NHAT-ENROLLMENT-QUIZ.md)** (middleware enrollment, route quiz, `course-watch.js`, hướng dẫn kiểm tra).
+
+---
+
 ## Chạy dự án (hướng A: xem khóa học + giỏ đăng ký)
 
 1. **Backend** (`backend/`):

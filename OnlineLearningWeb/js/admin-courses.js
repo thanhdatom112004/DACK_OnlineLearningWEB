@@ -50,7 +50,12 @@
         var title = t ? t.value.trim() : "";
         var url = u ? u.value.trim() : "";
         // Có URL là lưu được (thiếu tiêu đề thì backend gán "Bài học")
-        if (url) videos.push({ title: title || "Bài học", url: url });
+        if (url) {
+          var vid = { title: title || "Bài học", url: url };
+          var lid = item.querySelector(".video-lesson-id");
+          if (lid && lid.value) vid._id = lid.value;
+          videos.push(vid);
+        }
         else if (title) {
           // Có tiêu đề nhưng chưa có URL — báo để không bị "mất" bài học âm thầm
           throw new Error("Bài video \"" + title + "\" chưa có URL hoặc chưa upload file.");
@@ -116,6 +121,7 @@
       '<button type="button" class="btn btn-outline-secondary btn-sm btn-block video-preview-btn">Preview</button>' +
       "</div>" +
       "</div>" +
+      '<input type="hidden" class="video-lesson-id" value="" />' +
       '<video class="video-preview w-100" controls style="display:none;max-height:220px"></video>' +
       '<iframe class="video-preview-yt w-100" title="YouTube preview" style="display:none;min-height:200px;max-height:220px;border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
 
@@ -128,9 +134,11 @@
     var previewYt = row.querySelector(".video-preview-yt");
     var removeBtn = row.querySelector(".video-remove");
 
+    var lessonIdInput = row.querySelector(".video-lesson-id");
     if (video) {
       titleInput.value = video.title || "";
       urlInput.value = video.url || "";
+      if (lessonIdInput && video._id) lessonIdInput.value = String(video._id);
     }
 
     function syncVideoPreviewState() {

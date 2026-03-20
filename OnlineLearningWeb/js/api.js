@@ -87,6 +87,15 @@
     me: function () {
       return apiFetch("/api/auth/me");
     },
+    profileUpdate: function (body) {
+      return apiFetch("/api/auth/profile", { method: "PUT", body: body });
+    },
+    changePassword: function (oldPassword, newPassword) {
+      return apiFetch("/api/auth/changepassword", {
+        method: "POST",
+        body: { oldPassword: oldPassword, newPassword: newPassword },
+      });
+    },
     courses: function () {
       return apiFetch("/api/courses");
     },
@@ -160,6 +169,63 @@
     /** Khóa học đã thanh toán / đăng ký */
     enrollmentsMine: function () {
       return apiFetch("/api/enrollments/mine");
+    },
+    /** Quiz theo bài học (lessonId = _id của video hoặc idx-0, idx-1...) */
+    lessonQuizGet: function (courseId, lessonId) {
+      return apiFetch(
+        "/api/lesson-quizzes/" +
+          encodeURIComponent(courseId) +
+          "/" +
+          encodeURIComponent(lessonId)
+      );
+    },
+    /** Admin: quiz đầy đủ kèm đáp án */
+    lessonQuizGetFull: function (courseId, lessonId) {
+      return apiFetch(
+        "/api/lesson-quizzes/" +
+          encodeURIComponent(courseId) +
+          "/" +
+          encodeURIComponent(lessonId) +
+          "/full"
+      );
+    },
+    lessonQuizStats: function (courseId, lessonId) {
+      return apiFetch(
+        "/api/lesson-quizzes/" +
+          encodeURIComponent(courseId) +
+          "/" +
+          encodeURIComponent(lessonId) +
+          "/my-stats"
+      );
+    },
+    lessonQuizSubmit: function (courseId, lessonId, answers) {
+      return apiFetch(
+        "/api/lesson-quizzes/" +
+          encodeURIComponent(courseId) +
+          "/" +
+          encodeURIComponent(lessonId) +
+          "/submit",
+        { method: "POST", body: { answers: answers } }
+      );
+    },
+    /** Admin: lưu toàn bộ items */
+    lessonQuizUpsert: function (courseId, lessonId, items) {
+      return apiFetch(
+        "/api/lesson-quizzes/" +
+          encodeURIComponent(courseId) +
+          "/" +
+          encodeURIComponent(lessonId),
+        { method: "PUT", body: { items: items } }
+      );
+    },
+    lessonQuizDelete: function (courseId, lessonId) {
+      return apiFetch(
+        "/api/lesson-quizzes/" +
+          encodeURIComponent(courseId) +
+          "/" +
+          encodeURIComponent(lessonId),
+        { method: "DELETE" }
+      );
     },
   };
 })(window);

@@ -5,6 +5,14 @@
   var player = document.getElementById("cw-player");
   var youtubeFrame = document.getElementById("cw-youtube");
   var lessons = document.getElementById("cw-lessons");
+  var quizCard = document.getElementById("cw-quiz-card");
+  var quizStats = document.getElementById("cw-quiz-stats");
+  var quizContent = document.getElementById("cw-quiz-content");
+  var quizSubmit = document.getElementById("cw-quiz-submit");
+
+  var courseIdGlobal = null;
+  var currentLessonId = null;
+  var currentQuizItems = null; // sanitized items for render
 
   function show(type, msg) {
     if (!alertBox) return;
@@ -19,7 +27,6 @@
     return d.innerHTML;
   }
 
-  /** Trả về id video YouTube hoặc null nếu không phải link YouTube */
   function getYouTubeId(url) {
     if (!url || typeof url !== "string") return null;
     var u = url.trim();
@@ -52,12 +59,244 @@
     }
   }
 
+  function lessonKeyFromVideo(v, idx) {
+    if (v && v._id) return String(v._id);
+    return "idx-" + idx;
+  }
+
+  function loadQuizPanel() {
+    if (!quizCard || !quizContent || !courseIdGlobal || !currentLessonId) return;
+    quizContent.innerHTML =
+      '<p class="text-muted small mb-0">Đang tải bài kiểm tra...</p>';
+    if (quizSubmit) quizSubmit.style.display = "none";
+    if (quizStats) quizStats.textContent = "";
+
+    if (!OLApi.getToken()) {
+      quizCard.style.display = "block";
+      quizContent.innerHTML =
+        '<div class="alert alert-warning mb-0">' +
+        "<strong>Đăng nhập</strong> và <strong>mua khóa học</strong> (thêm vào giỏ → thanh toán) để làm quiz và lưu điểm. " +
+        '<a href="login.html">Đăng nhập</a> · <a href="cart.html">Giỏ hàng</a></div>';
+      if (quizStats) quizStats.textContent = "";
+      return;
+    }
+
+    OLApi.lessonQuizGet(courseIdGlobal, currentLessonId)
+      .then(function (data) {
+        if (!data || !data.exists || !data.items || !data.items.length) {
+          quizCard.style.display = "none";
+          return;
+        }
+        quizCard.style.display = "block";
+        currentQuizItems = data.items;
+        renderQuizForm(data.items);
+        if (quizSubmit) {
+          var hasMcq = data.items.some(function (it) {
+            return it.type === "mcq";
+          });
+          quizSubmit.style.display = hasMcq ? "inline-block" : "none";
+        }
+        return OLApi.lessonQuizStats(courseIdGlobal, currentLessonId).then(function (st) {
+          if (!quizStats || !st) return;
+          var parts = [];
+          if (st.totalAttempts > 0) {
+            parts.push(
+              "Đã làm: " +
+                st.totalAttempts +
+                " lần" +
+                (st.bestPercent != null ? " · Điểm cao nhất: " + st.bestPercent + "%" : "") +
+                (st.latest && st.latest.percent != null
+                  ? " · Lần gần nhất: " + st.latest.percent + "%"
+                  : "")
+            );
+            parts.push(" (Làm lại sẽ lưu thêm một lần làm mới.)");
+          } else {
+            parts.push("Chưa có lần làm nào cho bài này.");
+          }
+          quizStats.innerHTML = esc(parts.join(""));
+        });
+      })
+      .catch(function (e) {
+        quizCard.style.display = "block";
+        var msg = e && e.message ? e.message : "Không tải được bài kiểm tra.";
+        quizContent.innerHTML =
+          '<div class="alert alert-danger mb-0">' +
+          esc(msg) +
+          ' <a href="cart.html">Giỏ hàng</a> · <a href="my-courses.html">Khóa đã mua</a></div>';
+        if (quizStats) quizStats.textContent = "";
+        if (quizSubmit) quizSubmit.style.display = "none";
+      });
+  }
+
+  function renderQuizForm(items) {
+    if (!quizContent) return;
+    var html = "";
+    items.forEach(function (it, i) {
+      if (it.type === "mcq") {
+        html +=
+          '<div class="mb-3 p-3 border rounded bg-light" data-q-idx="' +
+          i +
+          '">' +
+          '<p class="font-weight-bold mb-2">' +
+          esc(it.prompt || "Câu hỏi") +
+          "</p>";
+        (it.options || []).forEach(function (opt, j) {
+          var id = "mcq-" + i + "-" + j;
+          html +=
+            '<div class="custom-control custom-radio">' +
+            '<input type="radio" class="custom-control-input cw-mcq" name="mcq-' +
+            i +
+            '" id="' +
+            id +
+            '" data-qidx="' +
+            i +
+            '" data-opt="' +
+            j +
+            '" />' +
+            '<label class="custom-control-label" for="' +
+            id +
+            '">' +
+            esc(opt) +
+            "</label></div>";
+        });
+        html += "</div>";
+      } else if (it.type === "flashcard") {
+        html +=
+          '<div class="mb-3 p-3 border rounded" data-fc-idx="' +
+          i +
+          '">' +
+          '<p class="text-muted small mb-1">Flashcard — bấm để lật</p>' +
+          '<div class="cw-flip border rounded p-3 bg-white" style="cursor:pointer;min-height:80px;" data-open="0">' +
+          '<div class="cw-flip-front font-weight-bold">' +
+          esc(it.front || "") +
+          "</div>" +
+          '<div class="cw-flip-back text-muted" style="display:none">' +
+          esc(it.back || "") +
+          "</div></div></div>";
+      }
+    });
+    quizContent.innerHTML = html;
+
+    quizContent.querySelectorAll(".cw-flip").forEach(function (el) {
+        el.addEventListener("click", function () {
+        var f = el.querySelector(".cw-flip-front");
+        var b = el.querySelector(".cw-flip-back");
+        var showingBack = b && b.style.display === "block";
+        if (showingBack) {
+          if (f) f.style.display = "block";
+          if (b) b.style.display = "none";
+        } else {
+          if (f) f.style.display = "none";
+          if (b) b.style.display = "block";
+        }
+      });
+    });
+  }
+
+  function collectAnswers() {
+    if (!currentQuizItems) return [];
+    var out = [];
+    for (var i = 0; i < currentQuizItems.length; i++) {
+      var it = currentQuizItems[i];
+      if (it.type === "mcq") {
+        var sel = quizContent.querySelector(
+          'input.cw-mcq[name="mcq-' + i + '"]:checked'
+        );
+        if (sel) out.push(Number(sel.getAttribute("data-opt")));
+        else out.push(null);
+      } else {
+        out.push(null);
+      }
+    }
+    return out;
+  }
+
+  if (quizSubmit) {
+    quizSubmit.addEventListener("click", function () {
+      if (!courseIdGlobal || !currentLessonId || !currentQuizItems) return;
+      if (!OLApi.getToken()) {
+        show("warning", "Vui lòng đăng nhập để lưu điểm.");
+        window.location.href = "login.html";
+        return;
+      }
+      var answers = collectAnswers();
+      var missing = false;
+      currentQuizItems.forEach(function (it, i) {
+        if (it.type === "mcq" && (answers[i] === null || answers[i] === undefined))
+          missing = true;
+      });
+      if (missing) {
+        show("warning", "Vui lòng trả lời hết các câu trắc nghiệm.");
+        return;
+      }
+      OLApi.lessonQuizSubmit(courseIdGlobal, currentLessonId, answers)
+        .then(function (res) {
+          show(
+            "success",
+            "Điểm: " +
+              res.percent +
+              "% (" +
+              res.correctCount +
+              "/" +
+              res.totalMcq +
+              " câu đúng). Lần làm thứ " +
+              res.attemptNumber +
+              "."
+          );
+          var reviewHtml =
+            '<div class="mt-3 p-3 border border-success rounded bg-white"><small class="text-muted">Đáp án chi tiết</small><ul class="mb-0 pl-3">';
+          (res.review || []).forEach(function (r, i) {
+            if (r.type === "mcq") {
+              var ok =
+                r.selectedIndex === r.correctIndex
+                  ? '<span class="text-success">Đúng</span>'
+                  : '<span class="text-danger">Sai</span>';
+              reviewHtml +=
+                "<li>" +
+                esc(r.prompt) +
+                " — " +
+                ok +
+                " (đáp án đúng: mục " +
+                (r.correctIndex + 1) +
+                ")</li>";
+            }
+          });
+          reviewHtml += "</ul></div>";
+          quizContent.innerHTML += reviewHtml;
+          if (quizSubmit) quizSubmit.style.display = "none";
+          if (OLApi.getToken()) {
+            OLApi.lessonQuizStats(courseIdGlobal, currentLessonId).then(function (st) {
+              if (!quizStats || !st) return;
+              var parts = [];
+              if (st.totalAttempts > 0) {
+                parts.push(
+                  "Đã làm: " +
+                    st.totalAttempts +
+                    " lần" +
+                    (st.bestPercent != null ? " · Điểm cao nhất: " + st.bestPercent + "%" : "") +
+                    (st.latest && st.latest.percent != null
+                      ? " · Lần gần nhất: " + st.latest.percent + "%"
+                      : "")
+                );
+                parts.push(" Bạn có thể chọn lại bài học và bấm (nếu còn nút) hoặc tải lại trang để làm lại.");
+              }
+              quizStats.innerHTML = esc(parts.join(""));
+            });
+          }
+        })
+        .catch(function (e) {
+          show("danger", e.message || "Không nộp được bài.");
+        });
+    });
+  }
+
   var params = new URLSearchParams(window.location.search);
   var id = params.get("id");
   if (!id) {
     show("danger", "Thiếu id khóa học.");
     return;
   }
+  courseIdGlobal = id;
 
   OLApi.course(id)
     .then(function (course) {
@@ -70,6 +309,7 @@
         lessons.innerHTML =
           '<div class="text-muted">Khóa học chưa có video bài học.</div>';
         hidePlayers();
+        if (quizCard) quizCard.style.display = "none";
         return;
       }
 
@@ -82,6 +322,9 @@
         });
         var active = lessons.querySelector('[data-idx="' + idx + '"]');
         if (active) active.classList.add("active");
+
+        currentLessonId = lessonKeyFromVideo(v, idx);
+        loadQuizPanel();
 
         if (!url) {
           hidePlayers();
