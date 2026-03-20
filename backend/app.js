@@ -38,6 +38,7 @@ app.use("/api/categories", require("./routes/categories"));
 app.use("/api/courses", require("./routes/courses"));
 app.use("/api/carts", require("./routes/carts"));
 app.use("/api/enrollments", require("./routes/enrollments"));
+app.use("/api/lesson-quizzes", require("./routes/lessonQuizzes"));
 
 // Health check
 app.get("/api/health", (req, res) => {

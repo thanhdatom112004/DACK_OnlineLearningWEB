@@ -33,10 +33,14 @@ router.post("/", checkLogin, checkRole("ADMIN"), async function (req, res, next)
     const videosNormalized = Array.isArray(videos)
       ? videos
           .map(function (v) {
-            return {
+            const o = {
               title: (v && v.title ? String(v.title) : "").trim() || "Bài học",
               url: (v && v.url ? String(v.url) : "").trim(),
             };
+            if (v && v._id && mongoose.Types.ObjectId.isValid(String(v._id))) {
+              o._id = v._id;
+            }
+            return o;
           })
           .filter(function (v) {
             return v.url.length > 0;
@@ -100,10 +104,14 @@ router.put("/:id", checkLogin, checkRole("ADMIN"), async function (req, res, nex
     if (Array.isArray(videos)) {
       $set.videos = videos
         .map(function (v) {
-          return {
+          const o = {
             title: (v && v.title ? String(v.title) : "").trim() || "Bài học",
             url: (v && v.url ? String(v.url) : "").trim(),
           };
+          if (v && v._id && mongoose.Types.ObjectId.isValid(String(v._id))) {
+            o._id = v._id;
+          }
+          return o;
         })
         .filter(function (v) {
           return v.url.length > 0;

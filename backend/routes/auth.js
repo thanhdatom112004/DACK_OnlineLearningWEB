@@ -8,6 +8,7 @@ const { checkLogin } = require("../middleware/authHandler");
 const { userPostValidation, validateResult } = require("../middleware/validationHandler");
 
 const userController = require("../controllers/users");
+const userModel = require("../models/users");
 const roleModel = require("../models/roles");
 const { sendMail } = require("../utils/mailHandler");
 
@@ -94,10 +95,67 @@ router.post("/login", async function (req, res, next) {
   }
 });
 
+function safeUserDoc(user) {
+  if (!user) return null;
+  const o = user.toObject ? user.toObject() : user;
+  const { password: _p, ...rest } = o;
+  return rest;
+}
+
 // GET /api/auth/me
 router.get("/me", checkLogin, async function (req, res, next) {
   let user = await userController.FindByID(req.userId);
-  res.send(user);
+  if (!user) return res.status(404).send({ message: "user not found" });
+  res.send(safeUserDoc(user));
+});
+
+// PUT /api/auth/profile — cập nhật thông tin (không cho đổi email)
+router.put("/profile", checkLogin, async function (req, res, next) {
+  try {
+    if (req.body && req.body.email !== undefined) {
+      return res.status(400).send({ message: "Không được thay đổi email" });
+    }
+
+    const user = await userModel.findOne({ _id: req.userId, isDeleted: false });
+    if (!user) return res.status(404).send({ message: "user not found" });
+
+    const { username, fullName, avatarUrl } = req.body;
+
+    if (username !== undefined) {
+      const u = String(username).trim();
+      if (!u) return res.status(400).send({ message: "Tên đăng nhập không được để trống" });
+      if (u !== user.username) {
+        const taken = await userModel.findOne({
+          username: u,
+          isDeleted: false,
+          _id: { $ne: user._id },
+        });
+        if (taken) return res.status(400).send({ message: "Tên đăng nhập đã được sử dụng" });
+      }
+      user.username = u;
+    }
+
+    if (fullName !== undefined) {
+      user.fullName = String(fullName).trim();
+    }
+
+    if (avatarUrl !== undefined) {
+      const a = String(avatarUrl).trim();
+      if (a === "") {
+        user.avatarUrl = "https://i.sstatic.net/l60Hf.png";
+      } else if (!/^https?:\/\//i.test(a) && !a.startsWith("data:")) {
+        return res.status(400).send({ message: "Avatar phải là URL (http/https) hoặc data URL" });
+      } else {
+        user.avatarUrl = a;
+      }
+    }
+
+    await user.save();
+    const populated = await userController.FindByID(user._id);
+    res.send(safeUserDoc(populated));
+  } catch (e) {
+    res.status(400).send({ message: String(e.message || e) });
+  }
 });
 
 // POST /api/auth/logout
@@ -108,18 +166,38 @@ router.post("/logout", checkLogin, function (req, res, next) {
 
 // POST /api/auth/changepassword
 router.post("/changepassword", checkLogin, async function (req, res, next) {
-  let { oldPassword, newPassword } = req.body;
-  let user = await userController.FindByID(req.userId);
-  if (!user) return res.status(404).send({ message: "user not found" });
+  try {
+    let { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword) {
+      return res.status(400).send({ message: "Cần nhập mật khẩu cũ và mật khẩu mới" });
+    }
+    if (String(newPassword).length < 8) {
+      return res.status(400).send({ message: "Mật khẩu mới tối thiểu 8 ký tự" });
+    }
 
-  // bcrypt compare sync works with hashed password in template
-  if (!bcrypt.compareSync(oldPassword, user.password)) {
-    return res.status(403).send({ message: "oldPassword khong dung" });
+    let user = await userModel.findOne({ _id: req.userId, isDeleted: false });
+    if (!user) return res.status(404).send({ message: "user not found" });
+
+    let ok = false;
+    try {
+      ok = bcrypt.compareSync(oldPassword, user.password);
+    } catch (e) {
+      ok = false;
+    }
+    if (!ok && user.password === oldPassword) {
+      ok = true;
+    }
+
+    if (!ok) {
+      return res.status(403).send({ message: "Mật khẩu cũ không đúng" });
+    }
+
+    user.password = newPassword;
+    await user.save();
+    res.send({ ok: true, message: "Đã cập nhật mật khẩu" });
+  } catch (e) {
+    res.status(400).send({ message: String(e.message || e) });
   }
-
-  user.password = newPassword;
-  await user.save();
-  res.send("da cap nhat password");
 });
 
 // POST /api/auth/forgotpassword
