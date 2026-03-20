@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Admin - Quản lý category</title>
+  <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700,800,900" rel="stylesheet" />
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+  <link rel="stylesheet" href="css/bootstrap.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="index.html"><span>Study</span>Lab</a>
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item"><a href="admin-dashboard.html" class="nav-link">Dashboard</a></li>
+        <li class="nav-item"><a href="login.html" class="nav-link">Đăng nhập</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <section class="ftco-section">
+    <div class="container">
+      <div id="act-alert" class="alert d-none" role="alert"></div>
+      <h3 class="mb-3">Quản lý category</h3>
+
+      <div class="card mb-4">
+        <div class="card-body">
+          <form id="cat-form">
+            <input type="hidden" id="cat-id" />
+            <div class="form-row">
+              <div class="form-group col-md-3">
+                <label>Tên category</label>
+                <input id="cat-name" class="form-control" required />
+              </div>
+              <div class="form-group col-md-5">
+                <label>Mô tả</label>
+                <input id="cat-description" class="form-control" />
+              </div>
+              <div class="form-group col-md-4">
+                <label>Ảnh category (URL)</label>
+                <input id="cat-image" class="form-control" placeholder="https://..." />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Tải ảnh từ máy (tuỳ chọn)</label>
+              <input id="cat-image-file" type="file" accept="image/*" class="form-control-file" />
+              <small class="form-text text-muted">Nếu chọn file ảnh, sẽ ưu tiên file này thay vì URL.</small>
+            </div>
+            <div class="form-group">
+              <img id="cat-image-preview" alt="preview" style="width: 140px; height: 90px; object-fit: cover; border:1px solid #ddd; border-radius: 6px; display:none;" />
+            </div>
+            <button class="btn btn-primary" type="submit">Lưu</button>
+            <button class="btn btn-outline-secondary" type="button" id="cat-reset">Làm mới</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm bg-white">
+          <thead>
+            <tr>
+              <th>Tên</th>
+              <th>Mô tả</th>
+              <th>Ảnh</th>
+              <th style="width:180px">Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="act-tbody">
+            <tr><td colspan="4">Đang tải...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <script src="js/jquery.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth-nav.js"></script>
+  <script src="js/admin-guard.js"></script>
+  <script src="js/admin-categories.js"></script>
+</body>
+</html>
+

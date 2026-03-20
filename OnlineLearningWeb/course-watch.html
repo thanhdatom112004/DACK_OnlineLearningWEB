@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Xem khóa học</title>
+  <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700,800,900" rel="stylesheet" />
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+  <link rel="stylesheet" href="css/bootstrap.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="index.html"><span>Study</span>Lab</a>
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item"><a href="course.html" class="nav-link">Khóa học</a></li>
+        <li class="nav-item"><a href="login.html" class="nav-link">Đăng nhập</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <section class="ftco-section">
+    <div class="container">
+      <div id="cw-alert" class="alert d-none" role="alert"></div>
+      <h3 id="cw-title" class="mb-2">Đang tải khóa học...</h3>
+      <p id="cw-desc" class="text-muted mb-4"></p>
+
+      <div class="row">
+        <div class="col-md-8 mb-3">
+          <!-- YouTube cần iframe; file/mp4 dùng thẻ video -->
+          <div id="cw-player-wrap" class="position-relative w-100 bg-dark" style="min-height:240px;">
+            <video
+              id="cw-player"
+              class="w-100"
+              controls
+              playsinline
+              style="display:none;max-height:430px;background:#000;"
+            ></video>
+            <iframe
+              id="cw-youtube"
+              class="w-100"
+              title="YouTube video"
+              style="display:none;min-height:360px;max-height:430px;border:0;"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen
+              referrerpolicy="strict-origin-when-cross-origin"
+            ></iframe>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Danh sách bài học</h5>
+              <div id="cw-lessons" class="list-group"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="js/jquery.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth-nav.js"></script>
+  <script src="js/course-watch.js"></script>
+</body>
+</html>
+

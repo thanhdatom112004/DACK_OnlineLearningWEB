@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Admin - Quản lý người dùng</title>
+  <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700,800,900" rel="stylesheet" />
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+  <link rel="stylesheet" href="css/bootstrap.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="index.html"><span>Study</span>Lab</a>
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item"><a href="admin-dashboard.html" class="nav-link">Dashboard</a></li>
+        <li class="nav-item"><a href="login.html" class="nav-link">Đăng nhập</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <section class="ftco-section">
+    <div class="container">
+      <div id="au-alert" class="alert d-none" role="alert"></div>
+      <h3 class="mb-3">Quản lý người dùng</h3>
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm bg-white">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th style="width:120px">Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="au-tbody">
+            <tr><td colspan="5">Đang tải...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <script src="js/jquery.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth-nav.js"></script>
+  <script src="js/admin-guard.js"></script>
+  <script src="js/admin-users.js"></script>
+</body>
+</html>
+
