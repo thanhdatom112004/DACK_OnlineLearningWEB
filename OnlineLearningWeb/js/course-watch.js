@@ -5,7 +5,7 @@
   var player = document.getElementById("cw-player");
   var youtubeFrame = document.getElementById("cw-youtube");
   var lessons = document.getElementById("cw-lessons");
-  var quizCard = document.getElementById("cw-quiz-card");
+  var openQuizBtn = document.getElementById("cw-open-quiz");
   var quizStats = document.getElementById("cw-quiz-stats");
   var quizContent = document.getElementById("cw-quiz-content");
   var quizSubmit = document.getElementById("cw-quiz-submit");
@@ -65,14 +65,13 @@
   }
 
   function loadQuizPanel() {
-    if (!quizCard || !quizContent || !courseIdGlobal || !currentLessonId) return;
+    if (!quizContent || !courseIdGlobal || !currentLessonId) return;
     quizContent.innerHTML =
       '<p class="text-muted small mb-0">Đang tải bài kiểm tra...</p>';
     if (quizSubmit) quizSubmit.style.display = "none";
     if (quizStats) quizStats.textContent = "";
 
     if (!OLApi.getToken()) {
-      quizCard.style.display = "block";
       quizContent.innerHTML =
         '<div class="alert alert-warning mb-0">' +
         "<strong>Đăng nhập</strong> và <strong>mua khóa học</strong> (thêm vào giỏ → thanh toán) để làm quiz và lưu điểm. " +
@@ -84,10 +83,12 @@
     OLApi.lessonQuizGet(courseIdGlobal, currentLessonId)
       .then(function (data) {
         if (!data || !data.exists || !data.items || !data.items.length) {
-          quizCard.style.display = "none";
+          quizContent.innerHTML =
+            '<p class="text-muted mb-0">Chưa có trắc nghiệm hoặc flashcard cho bài học này.</p>';
+          if (quizSubmit) quizSubmit.style.display = "none";
+          if (quizStats) quizStats.textContent = "";
           return;
         }
-        quizCard.style.display = "block";
         currentQuizItems = data.items;
         renderQuizForm(data.items);
         if (quizSubmit) {
@@ -117,7 +118,6 @@
         });
       })
       .catch(function (e) {
-        quizCard.style.display = "block";
         var msg = e && e.message ? e.message : "Không tải được bài kiểm tra.";
         quizContent.innerHTML =
           '<div class="alert alert-danger mb-0">' +
@@ -209,6 +209,15 @@
       }
     }
     return out;
+  }
+
+  if (openQuizBtn) {
+    openQuizBtn.addEventListener("click", function () {
+      if (typeof jQuery !== "undefined") {
+        jQuery("#cw-quiz-modal").modal("show");
+      }
+      loadQuizPanel();
+    });
   }
 
   if (quizSubmit) {
@@ -309,9 +318,11 @@
         lessons.innerHTML =
           '<div class="text-muted">Khóa học chưa có video bài học.</div>';
         hidePlayers();
-        if (quizCard) quizCard.style.display = "none";
+        if (openQuizBtn) openQuizBtn.disabled = true;
         return;
       }
+
+      if (openQuizBtn) openQuizBtn.disabled = false;
 
       function playVideo(v, idx) {
         var url = v && v.url ? String(v.url).trim() : "";
@@ -324,7 +335,9 @@
         if (active) active.classList.add("active");
 
         currentLessonId = lessonKeyFromVideo(v, idx);
-        loadQuizPanel();
+        if (typeof jQuery !== "undefined") {
+          jQuery("#cw-quiz-modal").modal("hide");
+        }
 
         if (!url) {
           hidePlayers();

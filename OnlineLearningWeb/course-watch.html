@@ -8,6 +8,14 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
   <link rel="stylesheet" href="css/bootstrap.min.css" />
   <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ~3 bài học hiển thị, phần còn lại cuộn trong khung */
+    .cw-lessons-scroll {
+      max-height: 13rem;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  </style>
 </head>
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -52,25 +60,12 @@
           <div class="card">
             <div class="card-body">
               <h5 class="card-title">Danh sách bài học</h5>
-              <div id="cw-lessons" class="list-group"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quiz / Flashcard theo bài học đang chọn -->
-      <div class="row mt-4">
-        <div class="col-12">
-          <div id="cw-quiz-card" class="card border-success" style="display: none">
-            <div class="card-header bg-light py-3">
-              <h5 class="mb-0 text-success">Kiểm tra &amp; flashcard (theo bài đang xem)</h5>
-              <small class="text-muted">Điểm được lưu mỗi lần nộp bài — làm lại sẽ tạo thêm một lần làm mới.</small>
-            </div>
-            <div class="card-body">
-              <div id="cw-quiz-stats" class="small text-muted mb-3"></div>
-              <div id="cw-quiz-content"></div>
-              <button type="button" id="cw-quiz-submit" class="btn btn-success mt-2" style="display: none">
-                Nộp bài (lưu điểm)
+              <div class="cw-lessons-scroll border rounded">
+                <div id="cw-lessons" class="list-group list-group-flush"></div>
+              </div>
+              <button type="button" id="cw-open-quiz" class="btn btn-outline-success btn-sm btn-block mt-3" disabled>
+                <span class="fa fa-pencil-square-o mr-1" aria-hidden="true"></span>
+                Làm bài tập
               </button>
             </div>
           </div>
@@ -78,6 +73,29 @@
       </div>
     </div>
   </section>
+
+  <!-- Trắc nghiệm & flashcard — chỉ hiện trong modal khi bấm "Làm bài tập" -->
+  <div class="modal fade" id="cw-quiz-modal" tabindex="-1" role="dialog" aria-labelledby="cw-quiz-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+      <div class="modal-content border-success">
+        <div class="modal-header bg-light py-3">
+          <h5 class="modal-title text-success" id="cw-quiz-modal-title">Làm bài tập</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Đóng">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <small class="text-muted d-block mb-2">Điểm được lưu mỗi lần nộp bài — làm lại sẽ tạo thêm một lần làm mới.</small>
+          <div id="cw-quiz-stats" class="small text-muted mb-3"></div>
+          <div id="cw-quiz-content"></div>
+        </div>
+        <div class="modal-footer flex-wrap">
+          <button type="button" id="cw-quiz-submit" class="btn btn-success" style="display: none">Nộp bài (lưu điểm)</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="js/jquery.min.js"></script>
   <script src="js/bootstrap.min.js"></script>

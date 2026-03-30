@@ -1,15 +1,12 @@
 require("dotenv").config();
 
+const { requireMongoUri } = require("../config/mongoUri");
 const mongoose = require("mongoose");
 const roleModel = require("../models/roles");
 const userModel = require("../models/users");
 
 async function main() {
-  if (!process.env.MONGODB_URI) {
-    throw new Error("Missing MONGODB_URI in backend/.env");
-  }
-
-  await mongoose.connect(process.env.MONGODB_URI);
+  await mongoose.connect(requireMongoUri());
   console.log("MongoDB connected");
 
   const rolesToEnsure = [

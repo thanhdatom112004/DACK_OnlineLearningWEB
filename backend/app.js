@@ -6,6 +6,7 @@ const createError = require("http-errors");
 const mongoose = require("mongoose");
 
 require("dotenv").config();
+const { requireMongoUri } = require("./config/mongoUri");
 
 const app = express();
 
@@ -17,13 +18,10 @@ app.use(express.urlencoded({ extended: false, limit: "50mb" }));
 app.use(cookieParser());
 
 // MongoDB connection (Atlas)
-if (!process.env.MONGODB_URI) {
-  console.error("Missing MONGODB_URI in backend/.env");
-  process.exit(1);
-}
+const mongoUri = requireMongoUri();
 
 mongoose
-  .connect(process.env.MONGODB_URI)
+  .connect(mongoUri)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => {
     console.error("MongoDB connect failed:", err);
