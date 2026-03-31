@@ -2,6 +2,7 @@
   var container = document.getElementById("course-list");
   var loading = document.getElementById("course-loading");
   var alertBox = document.getElementById("course-list-alert");
+  var categoryFilterList = document.getElementById("course-category-filter-list");
   if (!container) return;
 
   var imgs = [
@@ -40,16 +41,70 @@
     return "";
   }
 
-  OLApi.courses()
-    .then(function (list) {
+  var allCourses = [];
+  var selectedCategories = {};
+
+  function renderCategoryFilter(courses, categoriesFromApi) {
+    if (!categoryFilterList) return;
+    var map = {};
+    (categoriesFromApi || []).forEach(function (cat) {
+      if (!cat || !cat.name) return;
+      map[String(cat.name)] = true;
+    });
+    (courses || []).forEach(function (c) {
+      var name = c && c.category ? String(c.category).trim() : "";
+      if (name) map[name] = true;
+    });
+    var names = Object.keys(map).sort(function (a, b) {
+      return a.localeCompare(b, "vi");
+    });
+    if (!names.length) {
+      categoryFilterList.innerHTML = '<span class="text-muted">Chưa có category.</span>';
+      return;
+    }
+    categoryFilterList.innerHTML = "";
+    names.forEach(function (name, idx) {
+      var id = "filter-cat-" + idx;
+      var row = document.createElement("label");
+      row.setAttribute("for", id);
+      row.style.display = "block";
+      row.innerHTML =
+        '<input type="checkbox" id="' +
+        id +
+        '" class="course-filter-category" value="' +
+        escapeHtml(name) +
+        '"> ' +
+        escapeHtml(name);
+      categoryFilterList.appendChild(row);
+    });
+
+    categoryFilterList.querySelectorAll(".course-filter-category").forEach(function (cb) {
+      cb.addEventListener("change", function () {
+        selectedCategories = {};
+        categoryFilterList.querySelectorAll(".course-filter-category:checked").forEach(function (x) {
+          selectedCategories[String(x.value)] = true;
+        });
+        renderCourses(allCourses);
+      });
+    });
+  }
+
+  function renderCourses(list) {
       if (loading) loading.remove();
       container.innerHTML = "";
-      if (!list || !list.length) {
+      var filtered = (list || []).filter(function (c) {
+        var keys = Object.keys(selectedCategories);
+        if (!keys.length) return true;
+        var cat = c && c.category ? String(c.category) : "";
+        return !!selectedCategories[cat];
+      });
+
+      if (!filtered.length) {
         container.innerHTML =
-          '<div class="col-12"><p class="text-muted">Chưa có khóa học. Admin tạo khóa học qua API <code>POST /api/courses</code>.</p></div>';
+          '<div class="col-12"><p class="text-muted">Không có khóa học phù hợp category đã chọn.</p></div>';
         return;
       }
-      list.forEach(function (c, i) {
+      filtered.forEach(function (c, i) {
         var img = normalizeCourseImage(c) || imgs[i % imgs.length];
         var cat = c.category || "Khóa học";
         var price = typeof c.price === "number" ? c.price : 0;
@@ -105,6 +160,15 @@
             });
         });
       });
+  }
+
+  Promise.all([OLApi.courses(), OLApi.categories()])
+    .then(function (arr) {
+      var list = arr[0] || [];
+      var categories = arr[1] || [];
+      allCourses = list;
+      renderCategoryFilter(list, categories);
+      renderCourses(list);
     })
     .catch(function (e) {
       if (loading) loading.remove();

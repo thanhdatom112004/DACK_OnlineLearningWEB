@@ -227,5 +227,24 @@
         { method: "DELETE" }
       );
     },
+    /** Tạo đơn thanh toán (bank transfer) từ giỏ hàng hiện tại */
+    paymentOrderCreate: function (transferCode, method) {
+      return apiFetch("/api/payment-orders", {
+        method: "POST",
+        body: { transferCode: transferCode, method: method || "bank-transfer" },
+      });
+    },
+    /** Admin: danh sách đơn thanh toán */
+    paymentOrdersList: function (status) {
+      var path = "/api/payment-orders";
+      if (status) path += "?status=" + encodeURIComponent(status);
+      return apiFetch(path);
+    },
+    /** Admin: xác nhận đơn thanh toán */
+    paymentOrderConfirm: function (id) {
+      return apiFetch("/api/payment-orders/" + encodeURIComponent(id) + "/confirm", {
+        method: "POST",
+      });
+    },
   };
 })(window);

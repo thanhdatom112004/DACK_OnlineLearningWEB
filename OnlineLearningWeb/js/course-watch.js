@@ -14,6 +14,31 @@
   var currentLessonId = null;
   var currentQuizItems = null; // sanitized items for render
 
+  function userCanLearnCourse(course) {
+    var courseId = course && course._id ? course._id : courseIdGlobal;
+    var price = typeof course.price === "number" ? course.price : Number(course.price) || 0;
+    // Khóa học miễn phí: ai cũng học được
+    if (price <= 0) return Promise.resolve(true);
+    if (!OLApi.getToken()) return Promise.resolve(false);
+    return Promise.all([OLApi.me(), OLApi.enrollmentsMine()])
+      .then(function (arr) {
+        var me = arr[0] || {};
+        var list = arr[1] || [];
+        var roleName =
+          me && me.role && typeof me.role === "object"
+            ? String(me.role.name || "").toUpperCase()
+            : String((me && me.role) || "").toUpperCase();
+        if (roleName === "ADMIN") return true;
+        return list.some(function (en) {
+          var cid = en && en.course && en.course._id ? String(en.course._id) : "";
+          return cid === String(courseId);
+        });
+      })
+      .catch(function () {
+        return false;
+      });
+  }
+
   function show(type, msg) {
     if (!alertBox) return;
     alertBox.className = "alert alert-" + type;
@@ -309,9 +334,25 @@
 
   OLApi.course(id)
     .then(function (course) {
+      return Promise.all([course, userCanLearnCourse(course)]);
+    })
+    .then(function (arr) {
+      var course = arr[0];
+      var canLearn = !!arr[1];
       titleEl.textContent = course.title || "Khóa học";
       descEl.textContent = course.description || "";
       lessons.innerHTML = "";
+
+      if (!canLearn) {
+        lessons.innerHTML =
+          '<div class="alert alert-warning mb-0">' +
+          "Bạn chưa được mở khóa khóa học này. Vui lòng thanh toán và chờ admin xác nhận.<br>" +
+          '<a href="cart.html">Giỏ hàng</a> · <a href="payment.html">Thanh toán</a> · <a href="my-courses.html">Khóa học đã mua</a>' +
+          "</div>";
+        hidePlayers();
+        if (openQuizBtn) openQuizBtn.disabled = true;
+        return;
+      }
 
       var vids = course.videos || [];
       if (!vids.length) {

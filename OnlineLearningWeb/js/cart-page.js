@@ -21,9 +21,9 @@
     return d.innerHTML;
   }
 
-  function courseTitleById(map, id) {
+  function courseById(map, id) {
     var k = String(id);
-    return map[k] ? map[k] : "(Không tìm thấy tên — kiểm tra DB)";
+    return map[k] || null;
   }
 
   function priceLabel(n) {
@@ -36,7 +36,7 @@
     if (!OLApi.getToken()) {
       tbody.innerHTML =
         '<tr><td colspan="5">Chưa đăng nhập. <a href="login.html">Đăng nhập</a> để xem giỏ.</td></tr>';
-      if (hint) hint.textContent = "Cần đăng nhập (token trong localStorage + cookie).";
+      if (hint) hint.textContent = "";
       if (checkoutCard) checkoutCard.style.display = "none";
       return;
     }
@@ -45,12 +45,10 @@
       .then(function (arr) {
         var courses = arr[0] || [];
         var cartItems = arr[1] || [];
-        var titleMap = {};
-        var priceMap = {};
+        var courseMap = {};
         courses.forEach(function (c) {
           var id = String(c._id);
-          titleMap[id] = c.title;
-          priceMap[id] = typeof c.price === "number" ? c.price : Number(c.price) || 0;
+          courseMap[id] = c;
         });
 
         tbody.innerHTML = "";
@@ -64,32 +62,40 @@
 
         cartItems.forEach(function (line) {
           var cid = line.course;
-          var qty = line.quantity || 1;
-          var unit = priceMap[String(cid)];
-          if (unit === undefined) unit = 0;
-          var lineTotal = unit * qty;
+          var qty = 1; // mỗi khóa học chỉ xuất hiện 1 lần trong giỏ
+          var course = courseById(courseMap, cid);
+          var unit = 0;
+          var imgSrc = "";
+          if (course) {
+            unit = typeof course.price === "number" ? course.price : Number(course.price) || 0;
+            imgSrc = course.images || "";
+          }
+          var lineTotal = unit;
           grandTotal += lineTotal;
 
           var tr = document.createElement("tr");
+          var imgHtml = imgSrc
+            ? '<img src="' +
+              escapeHtml(imgSrc) +
+              '" alt="thumb" style="width:70px;height:46px;object-fit:cover;border-radius:4px;border:1px solid #ddd;" />'
+            : '<span class="text-muted">Không có</span>';
+
           tr.innerHTML =
             "<td>" +
-            escapeHtml(courseTitleById(titleMap, cid)) +
+            imgHtml +
+            "</td>" +
+            "<td>" +
+            escapeHtml(course && course.title ? course.title : "") +
             "</td>" +
             "<td>" +
             escapeHtml(priceLabel(unit)) +
-            "</td>" +
-            "<td>" +
-            escapeHtml(qty) +
             "</td>" +
             "<td><strong>" +
             escapeHtml(priceLabel(lineTotal)) +
             "</strong></td>" +
             '<td><button type="button" class="btn btn-sm btn-danger btn-remove" data-id="' +
             escapeHtml(String(cid)) +
-            '">Xóa</button> ' +
-            '<button type="button" class="btn btn-sm btn-outline-secondary btn-reduce" data-id="' +
-            escapeHtml(String(cid)) +
-            '">-1</button></td>';
+            '">Xóa</button></td>';
           tbody.appendChild(tr);
         });
 
@@ -110,18 +116,7 @@
           });
         });
 
-        tbody.querySelectorAll(".btn-reduce").forEach(function (btn) {
-          btn.addEventListener("click", function () {
-            var id = btn.getAttribute("data-id");
-            OLApi.cartReduce(id)
-              .then(function () {
-                load();
-              })
-              .catch(function (e) {
-                showAlert("danger", e.message || "Lỗi");
-              });
-          });
-        });
+        // bỏ nút giảm số lượng, mỗi khóa học chỉ 1 lần trong giỏ
       })
       .catch(function (e) {
         tbody.innerHTML =
@@ -130,31 +125,7 @@
       });
   }
 
-  if (checkoutBtn) {
-    checkoutBtn.addEventListener("click", function () {
-      if (!OLApi.getToken()) {
-        showAlert("warning", "Cần đăng nhập.");
-        return;
-      }
-      if (!confirm("Xác nhận thanh toán? (Demo — luôn thành công)")) return;
-      checkoutBtn.disabled = true;
-      OLApi.cartCheckout()
-        .then(function (data) {
-          var msg = data && data.message ? data.message : "Thanh toán thành công";
-          var ref = data && data.paymentRef ? " Mã: " + data.paymentRef : "";
-          showAlert("success", msg + ref + ". Chuyển tới Khóa học đã mua…");
-          setTimeout(function () {
-            window.location.href = "my-courses.html";
-          }, 1200);
-        })
-        .catch(function (e) {
-          showAlert("danger", e.message || "Thanh toán thất bại");
-        })
-        .finally(function () {
-          checkoutBtn.disabled = false;
-        });
-    });
-  }
+  // chuyển sang trang payment.html bằng link trong cart.html
 
   load();
 })();

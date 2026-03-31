@@ -8,6 +8,69 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
   <link rel="stylesheet" href="css/bootstrap.min.css" />
   <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .admin-hero {
+      background: linear-gradient(135deg, #3f51b5, #5c6bc0);
+      color: #fff;
+      border-radius: 14px;
+      padding: 28px 24px;
+      box-shadow: 0 8px 24px rgba(63, 81, 181, 0.25);
+      margin-bottom: 22px;
+    }
+    .admin-hero h2 {
+      margin: 0 0 6px;
+      color: #fff;
+      font-weight: 700;
+    }
+    .admin-hero p {
+      margin: 0;
+      opacity: 0.95;
+    }
+    .admin-menu-card {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 14px;
+      border: 0;
+      border-radius: 12px;
+      padding: 18px 16px;
+      min-height: 86px;
+      color: #fff !important;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+      text-decoration: none !important;
+    }
+    .admin-menu-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 20px rgba(0, 0, 0, 0.14);
+      opacity: 0.98;
+    }
+    .admin-menu-card .icon-wrap {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.18);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      flex: 0 0 44px;
+    }
+    .admin-menu-card .label-wrap strong {
+      display: block;
+      font-size: 1rem;
+      line-height: 1.25;
+    }
+    .admin-menu-card .label-wrap small {
+      opacity: 0.9;
+      font-size: 0.8rem;
+    }
+    .bg-admin-courses { background: linear-gradient(135deg, #1e88e5, #42a5f5); }
+    .bg-admin-users { background: linear-gradient(135deg, #546e7a, #78909c); }
+    .bg-admin-categories { background: linear-gradient(135deg, #00acc1, #26c6da); }
+    .bg-admin-quizzes { background: linear-gradient(135deg, #43a047, #66bb6a); }
+    .bg-admin-payments { background: linear-gradient(135deg, #fb8c00, #ffa726); }
+  </style>
 </head>
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -15,8 +78,6 @@
       <a class="navbar-brand" href="index.html"><span>Study</span>Lab</a>
       <div class="collapse navbar-collapse" id="ftco-nav">
         <ul class="navbar-nav ml-auto">
-          <li class="nav-item"><a href="course.html" class="nav-link">Course</a></li>
-          <li class="nav-item"><a href="cart.html" class="nav-link">Giỏ hàng</a></li>
           <li class="nav-item"><a href="login.html" class="nav-link">Đăng nhập</a></li>
         </ul>
       </div>
@@ -26,26 +87,54 @@
   <section class="ftco-section">
     <div class="container">
       <div id="admin-alert" class="alert d-none" role="alert"></div>
-      <h2 class="mb-4">Khu vực quản trị</h2>
+      <div class="admin-hero">
+        <h2>Khu vực quản trị</h2>
+        <p>Quản lý khóa học, người dùng, danh mục, quiz và xác nhận thanh toán tập trung tại một nơi.</p>
+      </div>
       <div class="row">
         <div class="col-md-6 mb-3">
-          <a href="admin-courses.html" class="btn btn-primary btn-block p-4">
-            <i class="fa fa-book mr-2"></i> Quản lý khóa học
+          <a href="admin-courses.html" class="admin-menu-card bg-admin-courses">
+            <span class="icon-wrap"><i class="fa fa-book"></i></span>
+            <span class="label-wrap">
+              <strong>Quản lý khóa học</strong>
+              <small>Tạo, sửa, xóa và cập nhật nội dung</small>
+            </span>
           </a>
         </div>
         <div class="col-md-6 mb-3">
-          <a href="admin-users.html" class="btn btn-secondary btn-block p-4">
-            <i class="fa fa-users mr-2"></i> Quản lý người dùng
+          <a href="admin-users.html" class="admin-menu-card bg-admin-users">
+            <span class="icon-wrap"><i class="fa fa-users"></i></span>
+            <span class="label-wrap">
+              <strong>Quản lý người dùng</strong>
+              <small>Theo dõi tài khoản và trạng thái</small>
+            </span>
           </a>
         </div>
         <div class="col-md-6 mb-3">
-          <a href="admin-categories.html" class="btn btn-info btn-block p-4 text-white">
-            <i class="fa fa-tags mr-2"></i> Quản lý category
+          <a href="admin-categories.html" class="admin-menu-card bg-admin-categories">
+            <span class="icon-wrap"><i class="fa fa-tags"></i></span>
+            <span class="label-wrap">
+              <strong>Quản lý category</strong>
+              <small>Phân loại khóa học rõ ràng</small>
+            </span>
           </a>
         </div>
         <div class="col-md-6 mb-3">
-          <a href="admin-lesson-quizzes.html" class="btn btn-success btn-block p-4 text-white">
-            <i class="fa fa-question-circle mr-2"></i> Quiz / Flashcard theo bài học
+          <a href="admin-lesson-quizzes.html" class="admin-menu-card bg-admin-quizzes">
+            <span class="icon-wrap"><i class="fa fa-question-circle"></i></span>
+            <span class="label-wrap">
+              <strong>Quiz / Flashcard theo bài học</strong>
+              <small>Quản lý bộ câu hỏi đánh giá</small>
+            </span>
+          </a>
+        </div>
+        <div class="col-md-6 mb-3">
+          <a href="admin-payment-orders.html" class="admin-menu-card bg-admin-payments">
+            <span class="icon-wrap"><i class="fa fa-credit-card"></i></span>
+            <span class="label-wrap">
+              <strong>Quản lý thanh toán</strong>
+              <small>Xác nhận đơn chuyển khoản từ học viên</small>
+            </span>
           </a>
         </div>
       </div>

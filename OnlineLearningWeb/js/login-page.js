@@ -14,11 +14,22 @@
     var u = document.getElementById("login-username").value.trim();
     var p = document.getElementById("login-password").value;
     OLApi.login(u, p)
-      .then(function () {
-        showAlert("success", "Đăng nhập thành công. Chuyển đến khóa học...");
+      .then(function (data) {
+        var roleName =
+          data &&
+          data.user &&
+          data.user.role &&
+          (typeof data.user.role === "object" ? data.user.role.name : data.user.role);
+        var isAdmin = String(roleName || "").toUpperCase() === "ADMIN";
+        showAlert(
+          "success",
+          isAdmin
+            ? "Đăng nhập admin thành công. Đang chuyển đến trang quản trị..."
+            : "Đăng nhập thành công. Đang chuyển đến trang học..."
+        );
         setTimeout(function () {
-          window.location.href = "course.html";
-        }, 800);
+          window.location.href = isAdmin ? "admin-dashboard.html" : "course.html";
+        }, 700);
       })
       .catch(function (err) {
         showAlert("danger", err.message || "Đăng nhập thất bại");

@@ -26,18 +26,28 @@
     var loginItem = ensureLoginItem(navList);
     if (!loginItem) return;
 
+    var isAdmin = String(roleName || "").toUpperCase() === "ADMIN";
+    var homeLabel = isAdmin ? "Trang quản trị" : "Trang học";
+    var homeHref = isAdmin ? "admin-dashboard.html" : "course.html";
+
     loginItem.className = "nav-item dropdown";
     loginItem.innerHTML =
       '<a class="nav-link dropdown-toggle" href="#" id="userDropdownNav" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
       '<span class="fa fa-user-circle"></span> ' +
       (username || "Tài khoản") +
+      (isAdmin
+        ? ' <span class="badge badge-warning ml-1" style="font-size:10px;vertical-align:middle;">ADMIN</span>'
+        : "") +
       "</a>" +
       '<div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdownNav">' +
-      (String(roleName || "").toUpperCase() === "ADMIN"
-        ? '<a class="dropdown-item" href="admin-dashboard.html">Quản trị</a>'
+      '<a class="dropdown-item" href="' + homeHref + '">' + homeLabel + "</a>" +
+      (isAdmin
+        ? '<a class="dropdown-item" href="admin-payment-orders.html">Xác nhận thanh toán</a>'
         : "") +
       '<a class="dropdown-item" href="profile.html">Thông tin cá nhân</a>' +
-      '<a class="dropdown-item" href="my-courses.html">Khóa học đã mua</a>' +
+      (isAdmin
+        ? '<a class="dropdown-item" href="admin-courses.html">Quản lý khóa học</a>'
+        : '<a class="dropdown-item" href="my-courses.html">Khóa học đã mua</a>') +
       '<a class="dropdown-item" href="cart.html">Giỏ hàng</a>' +
       '<div class="dropdown-divider"></div>' +
       '<button class="dropdown-item text-danger" type="button" id="logoutBtnNav">Đăng xuất</button>' +

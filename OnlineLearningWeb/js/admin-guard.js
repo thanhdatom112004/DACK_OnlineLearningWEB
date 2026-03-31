@@ -4,6 +4,7 @@
     "admin-courses.html": "ac-alert",
     "admin-categories.html": "act-alert",
     "admin-users.html": "au-alert",
+    "admin-payment-orders.html": "apo-alert",
   };
 
   function showAlert(msg) {
