@@ -72,16 +72,27 @@
       headers.Authorization = "Bearer " + token;
     }
     var method = options.method || "GET";
+    var isFormData =
+      typeof FormData !== "undefined" && options.body && options.body instanceof FormData;
+    if (!isFormData && !headers["Content-Type"]) {
+      headers["Content-Type"] = "application/json";
+    }
+    var body;
+    if (!options.body) {
+      body = undefined;
+    } else if (isFormData) {
+      body = options.body;
+    } else if (typeof options.body === "string") {
+      body = options.body;
+    } else {
+      body = JSON.stringify(options.body);
+    }
     return fetch(getApiBase() + path, {
       credentials: "include",
       // Tránh cache GET (dữ liệu khóa học/video sau khi admin cập nhật)
       cache: method === "GET" ? "no-store" : "default",
-      headers: Object.assign({ "Content-Type": "application/json" }, headers),
-      body: options.body
-        ? typeof options.body === "string"
-          ? options.body
-          : JSON.stringify(options.body)
-        : undefined,
+      headers: headers,
+      body: body,
       method: method,
     }).then(function (res) {
       if (!res.ok) {
@@ -287,6 +298,51 @@
     /** Admin: xác nhận đơn thanh toán */
     paymentOrderConfirm: function (id) {
       return apiFetch("/api/payment-orders/" + encodeURIComponent(id) + "/confirm", {
+        method: "POST",
+      });
+    },
+    /** Tin nhắn: danh sách hội thoại (mỗi người một dòng gần nhất) */
+    messagesConversations: function () {
+      return apiFetch("/api/messages/conversations");
+    },
+    /** Tin nhắn với một user */
+    messagesWith: function (userId) {
+      return apiFetch("/api/messages/with/" + encodeURIComponent(userId));
+    },
+    /** Gửi tin (JSON) */
+    messagesSend: function (to, messageText) {
+      return apiFetch("/api/messages", {
+        method: "POST",
+        body: { to: to, message: messageText },
+      });
+    },
+    /** Gửi tin kèm file ảnh (multipart) */
+    messagesSendWithFile: function (formData) {
+      return apiFetch("/api/messages", {
+        method: "POST",
+        body: formData,
+      });
+    },
+    /** Danh sách tài khoản admin (để user chọn chat) */
+    messagesAdmins: function () {
+      return apiFetch("/api/messages/admins");
+    },
+    /** ID tài khoản hộ trợ chung (một inbox cho mọi admin) */
+    messagesSupportConfig: function () {
+      return apiFetch("/api/messages/support/config");
+    },
+    /** Hội thoại hỗ trợ: học viên không tham số; admin truyền userId học viên */
+    messagesSupportThread: function (otherUserId) {
+      var q = otherUserId ? "?userId=" + encodeURIComponent(otherUserId) : "";
+      return apiFetch("/api/messages/support/thread" + q);
+    },
+    /** Admin: danh sách học viên đã nhắn hỗ trợ */
+    messagesSupportInbox: function () {
+      return apiFetch("/api/messages/support/inbox");
+    },
+    /** Thu hồi tin nhắn của bản thân (trong ~3 giờ) */
+    messagesRecall: function (messageId) {
+      return apiFetch("/api/messages/" + encodeURIComponent(messageId) + "/recall", {
         method: "POST",
       });
     },

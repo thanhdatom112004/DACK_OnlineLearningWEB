@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs");
 const express = require("express");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
@@ -38,6 +39,13 @@ app.use("/api/carts", require("./routes/carts"));
 app.use("/api/enrollments", require("./routes/enrollments"));
 app.use("/api/lesson-quizzes", require("./routes/lessonQuizzes"));
 app.use("/api/payment-orders", require("./routes/paymentOrders"));
+app.use("/api/messages", require("./routes/messages"));
+
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use("/uploads", express.static(uploadsDir));
 
 // Health check
 app.get("/api/health", (req, res) => {

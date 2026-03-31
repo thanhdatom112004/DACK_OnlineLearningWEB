@@ -11,6 +11,9 @@
 *.sln.docstates
 *.env
 
+# Chat uploads (local disk)
+backend/uploads/
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
