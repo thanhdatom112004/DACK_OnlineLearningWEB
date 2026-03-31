@@ -24,6 +24,46 @@
     } catch (e) {}
   }
 
+  /** Giới hạn trên cho giá khóa học (VND, số nguyên). */
+  var MAX_PRICE_VND = 999999999999;
+
+  /**
+   * Định dạng số tiền VND (đơn giản: 0 → "0đ", >0 → "1.000.000đ").
+   */
+  function formatPriceVnd(n) {
+    var p = typeof n === "number" && !isNaN(n) ? n : Number(n) || 0;
+    if (p <= 0) return "0đ";
+    return p.toLocaleString("vi-VN") + "đ";
+  }
+
+  /**
+   * Giá hiển thị trên thẻ khóa học: miễn phí vs có phí.
+   */
+  function formatCoursePriceDisplay(n) {
+    var p = typeof n === "number" && !isNaN(n) ? n : Number(n) || 0;
+    if (p <= 0) return "Miễn phí";
+    return p.toLocaleString("vi-VN") + "đ";
+  }
+
+  /**
+   * Kiểm tra giá nhập (admin): số nguyên VND, không âm, không vượt trần.
+   * @returns {{ ok: true, value: number } | { ok: false, message: string }}
+   */
+  function validatePriceVnd(raw) {
+    var n = Number(raw);
+    if (!Number.isFinite(n)) {
+      return { ok: false, message: "Giá phải là số hợp lệ (VND)." };
+    }
+    var r = Math.round(n);
+    if (r < 0) {
+      return { ok: false, message: "Giá không được âm." };
+    }
+    if (r > MAX_PRICE_VND) {
+      return { ok: false, message: "Giá vượt quá giới hạn cho phép (VND)." };
+    }
+    return { ok: true, value: r };
+  }
+
   function apiFetch(path, options) {
     options = options || {};
     var headers = options.headers || {};
@@ -67,6 +107,10 @@
     getToken: getToken,
     setToken: setToken,
     fetch: apiFetch,
+    MAX_PRICE_VND: MAX_PRICE_VND,
+    formatPriceVnd: formatPriceVnd,
+    formatCoursePriceDisplay: formatCoursePriceDisplay,
+    validatePriceVnd: validatePriceVnd,
     login: function (username, password) {
       return apiFetch("/api/auth/login", {
         method: "POST",

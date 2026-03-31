@@ -30,6 +30,8 @@ const courseSchema = new mongoose.Schema(
     price: {
       type: Number,
       default: 0,
+      min: [0, "Giá không được âm"],
+      max: [999999999999, "Giá vượt quá giới hạn (VND)"],
     },
     description: {
       type: String,

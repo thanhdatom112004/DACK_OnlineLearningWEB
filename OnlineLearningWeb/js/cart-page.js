@@ -26,12 +26,6 @@
     return map[k] || null;
   }
 
-  function priceLabel(n) {
-    var p = typeof n === "number" && !isNaN(n) ? n : Number(n) || 0;
-    if (p <= 0) return "0đ";
-    return "$" + p;
-  }
-
   function load() {
     if (!OLApi.getToken()) {
       tbody.innerHTML =
@@ -88,10 +82,10 @@
             escapeHtml(course && course.title ? course.title : "") +
             "</td>" +
             "<td>" +
-            escapeHtml(priceLabel(unit)) +
+            escapeHtml(OLApi.formatPriceVnd(unit)) +
             "</td>" +
             "<td><strong>" +
-            escapeHtml(priceLabel(lineTotal)) +
+            escapeHtml(OLApi.formatPriceVnd(lineTotal)) +
             "</strong></td>" +
             '<td><button type="button" class="btn btn-sm btn-danger btn-remove" data-id="' +
             escapeHtml(String(cid)) +
@@ -99,7 +93,7 @@
           tbody.appendChild(tr);
         });
 
-        if (totalDisplay) totalDisplay.textContent = priceLabel(grandTotal);
+        if (totalDisplay) totalDisplay.textContent = OLApi.formatPriceVnd(grandTotal);
         if (checkoutCard) checkoutCard.style.display = "block";
 
         tbody.querySelectorAll(".btn-remove").forEach(function (btn) {

@@ -8,76 +8,29 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
   <link rel="stylesheet" href="css/bootstrap.min.css" />
   <link rel="stylesheet" href="css/style.css" />
-  <style>
-    .admin-hero {
-      background: linear-gradient(135deg, #3f51b5, #5c6bc0);
-      color: #fff;
-      border-radius: 14px;
-      padding: 28px 24px;
-      box-shadow: 0 8px 24px rgba(63, 81, 181, 0.25);
-      margin-bottom: 22px;
-    }
-    .admin-hero h2 {
-      margin: 0 0 6px;
-      color: #fff;
-      font-weight: 700;
-    }
-    .admin-hero p {
-      margin: 0;
-      opacity: 0.95;
-    }
-    .admin-menu-card {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 14px;
-      border: 0;
-      border-radius: 12px;
-      padding: 18px 16px;
-      min-height: 86px;
-      color: #fff !important;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
-      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
-      text-decoration: none !important;
-    }
-    .admin-menu-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 20px rgba(0, 0, 0, 0.14);
-      opacity: 0.98;
-    }
-    .admin-menu-card .icon-wrap {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.18);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 19px;
-      flex: 0 0 44px;
-    }
-    .admin-menu-card .label-wrap strong {
-      display: block;
-      font-size: 1rem;
-      line-height: 1.25;
-    }
-    .admin-menu-card .label-wrap small {
-      opacity: 0.9;
-      font-size: 0.8rem;
-    }
-    .bg-admin-courses { background: linear-gradient(135deg, #1e88e5, #42a5f5); }
-    .bg-admin-users { background: linear-gradient(135deg, #546e7a, #78909c); }
-    .bg-admin-categories { background: linear-gradient(135deg, #00acc1, #26c6da); }
-    .bg-admin-quizzes { background: linear-gradient(135deg, #43a047, #66bb6a); }
-    .bg-admin-payments { background: linear-gradient(135deg, #fb8c00, #ffa726); }
-  </style>
+  <link rel="stylesheet" href="css/admin.css" />
 </head>
-<body>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<body class="admin-body">
+  <nav class="navbar navbar-expand-lg navbar-dark admin-navbar">
     <div class="container">
-      <a class="navbar-brand" href="index.html"><span>Study</span>Lab</a>
+      <a class="navbar-brand d-flex align-items-center" href="admin-dashboard.html">
+        <span class="admin-brand-mark"><i class="fa fa-shield"></i></span>
+        <span class="text-white"><span class="font-weight-bold">Study</span>Lab<small class="admin-brand-sub">Quản trị</small></span>
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Menu">
+        <span class="fa fa-bars text-white"></span>
+      </button>
       <div class="collapse navbar-collapse" id="ftco-nav">
+        <ul class="navbar-nav flex-wrap mx-lg-auto mt-2 mt-lg-0 admin-nav-links">
+          <li class="nav-item active"><a class="nav-link" href="admin-dashboard.html">Tổng quan</a></li>
+          <li class="nav-item"><a class="nav-link" href="admin-courses.html">Khóa học</a></li>
+          <li class="nav-item"><a class="nav-link" href="admin-categories.html">Category</a></li>
+          <li class="nav-item"><a class="nav-link" href="admin-users.html">Học viên</a></li>
+          <li class="nav-item"><a class="nav-link" href="admin-lesson-quizzes.html">Quiz</a></li>
+          <li class="nav-item"><a class="nav-link" href="admin-payment-orders.html">Thanh toán</a></li>
+        </ul>
         <ul class="navbar-nav ml-auto">
+          <li class="nav-item"><a href="index.html" class="nav-link text-white-50" title="Trang chủ"><i class="fa fa-home"></i></a></li>
           <li class="nav-item"><a href="login.html" class="nav-link">Đăng nhập</a></li>
         </ul>
       </div>
@@ -148,4 +101,3 @@
   <script src="js/admin-guard.js"></script>
 </body>
 </html>
-

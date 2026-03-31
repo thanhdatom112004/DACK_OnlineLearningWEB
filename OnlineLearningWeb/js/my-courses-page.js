@@ -15,12 +15,6 @@
     return d.innerHTML;
   }
 
-  function priceLabel(n) {
-    var p = typeof n === "number" && !isNaN(n) ? n : Number(n) || 0;
-    if (p <= 0) return "0đ";
-    return "$" + p;
-  }
-
   function fmtDate(d) {
     if (!d) return "—";
     try {
@@ -67,7 +61,7 @@
           esc(qty) +
           "</td>" +
           "<td>" +
-          esc(priceLabel(paid)) +
+          esc(OLApi.formatPriceVnd(paid)) +
           "</td>" +
           "<td>" +
           esc(fmtDate(when)) +

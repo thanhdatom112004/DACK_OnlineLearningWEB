@@ -48,7 +48,7 @@
       (isAdmin
         ? '<a class="dropdown-item" href="admin-courses.html">Quản lý khóa học</a>'
         : '<a class="dropdown-item" href="my-courses.html">Khóa học đã mua</a>') +
-      '<a class="dropdown-item" href="cart.html">Giỏ hàng</a>' +
+      (isAdmin ? "" : '<a class="dropdown-item" href="cart.html">Giỏ hàng</a>') +
       '<div class="dropdown-divider"></div>' +
       '<button class="dropdown-item text-danger" type="button" id="logoutBtnNav">Đăng xuất</button>' +
       "</div>";

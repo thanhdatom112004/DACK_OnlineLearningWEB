@@ -13,12 +13,6 @@
     alertBox.classList.remove("d-none");
   }
 
-  function priceLabel(n) {
-    var p = typeof n === "number" && !isNaN(n) ? n : Number(n) || 0;
-    if (p <= 0) return "0đ";
-    return p.toLocaleString("vi-VN") + "đ";
-  }
-
   function buildVietQrUrl(amount, transferCode) {
     var base = "https://img.vietqr.io/image/techcombank-19038491122011-compact2.png";
     var params = new URLSearchParams({
@@ -56,7 +50,7 @@
         var price = typeof c.price === "number" ? c.price : Number(c.price) || 0;
         total += price;
       });
-      if (totalSpan) totalSpan.textContent = priceLabel(total);
+      if (totalSpan) totalSpan.textContent = OLApi.formatPriceVnd(total);
       if (qrImage) {
         qrImage.src = buildVietQrUrl(total, transferCode);
       }

@@ -7,6 +7,19 @@ const inventoryModel = require("../models/inventories");
 const { checkLogin, checkRole } = require("../middleware/authHandler");
 const { convertTitleToSlug } = require("../utils/titleHandler");
 
+const MAX_PRICE_VND = 999999999999;
+
+function normalizePriceVnd(raw) {
+  const n = Number(raw);
+  if (!Number.isFinite(n)) {
+    throw new Error("Giá phải là số hợp lệ (VND).");
+  }
+  const r = Math.round(n);
+  if (r < 0) throw new Error("Giá không được âm.");
+  if (r > MAX_PRICE_VND) throw new Error("Giá vượt quá giới hạn cho phép (VND).");
+  return r;
+}
+
 // USER/Admin can view courses
 router.get("/", async function (req, res, next) {
   const courses = await courseModel.find({ isDeleted: false });
@@ -28,7 +41,15 @@ router.post("/", checkLogin, checkRole("ADMIN"), async function (req, res, next)
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { title, price = 0, description = "", category = "", images, videos = [] } = req.body;
+    const { title, price: rawPrice = 0, description = "", category = "", images, videos = [] } = req.body;
+    let price;
+    try {
+      price = normalizePriceVnd(rawPrice);
+    } catch (e) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).send({ message: String(e.message || e) });
+    }
 
     const videosNormalized = Array.isArray(videos)
       ? videos
@@ -96,7 +117,13 @@ router.put("/:id", checkLogin, checkRole("ADMIN"), async function (req, res, nex
       $set.title = title;
       $set.slug = convertTitleToSlug(String(title));
     }
-    if (price !== undefined) $set.price = Number(price);
+    if (price !== undefined) {
+      try {
+        $set.price = normalizePriceVnd(price);
+      } catch (e) {
+        return res.status(400).send({ message: String(e.message || e) });
+      }
+    }
     if (description !== undefined) $set.description = description;
     if (category !== undefined) $set.category = category;
     if (images !== undefined) $set.images = images;

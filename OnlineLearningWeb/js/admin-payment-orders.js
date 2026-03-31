@@ -16,12 +16,6 @@
     return d.innerHTML;
   }
 
-  function priceLabel(n) {
-    var p = typeof n === "number" && !isNaN(n) ? n : Number(n) || 0;
-    if (p <= 0) return "0đ";
-    return p.toLocaleString("vi-VN") + "đ";
-  }
-
   function statusBadge(status) {
     var s = String(status || "").toUpperCase();
     if (s === "PAID") return '<span class="badge badge-success">ĐÃ XÁC NHẬN</span>';
@@ -53,7 +47,7 @@
             " (" +
             esc(user.email || "") +
             ")</td><td>" +
-            esc(priceLabel(o.totalAmount || 0)) +
+            esc(OLApi.formatPriceVnd(o.totalAmount || 0)) +
             "</td><td>" +
             statusBadge(o.status) +
             "</td><td>" +

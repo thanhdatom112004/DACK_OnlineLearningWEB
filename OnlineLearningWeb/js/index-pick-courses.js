@@ -32,12 +32,6 @@
     return d.innerHTML;
   }
 
-  function formatPrice(n) {
-    var p = typeof n === "number" && !isNaN(n) ? n : Number(n) || 0;
-    if (p <= 0) return "0đ";
-    return "$" + p;
-  }
-
   function isFree(c) {
     var p = typeof c.price === "number" ? c.price : Number(c.price);
     return !isNaN(p) && p <= 0;
@@ -69,7 +63,7 @@
         var price = typeof c.price === "number" ? c.price : Number(c.price) || 0;
         var id = c._id;
         var free = isFree(c);
-        var priceLabel = formatPrice(price);
+        var priceLabel = OLApi.formatCoursePriceDisplay(price);
         var desc = (c.description || "").slice(0, 100);
         if (c.description && c.description.length > 100) desc += "…";
 

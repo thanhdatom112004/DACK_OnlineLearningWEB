@@ -107,7 +107,10 @@
       filtered.forEach(function (c, i) {
         var img = normalizeCourseImage(c) || imgs[i % imgs.length];
         var cat = c.category || "Khóa học";
-        var price = typeof c.price === "number" ? c.price : 0;
+        var price =
+          typeof c.price === "number" && !isNaN(c.price)
+            ? c.price
+            : Number(c.price) || 0;
         var id = c._id;
         var col = document.createElement("div");
         col.className = "col-md-6 d-flex align-items-stretch";
@@ -128,8 +131,8 @@
           (c.description && c.description.length > 120 ? "…" : "") +
           "</p>" +
           '<ul class="d-flex justify-content-between align-items-center">' +
-          '<li class="price">$' +
-          price +
+          '<li class="price">' +
+          escapeHtml(OLApi.formatCoursePriceDisplay(price)) +
           "</li>" +
           '<li><a class="btn btn-sm btn-outline-success mr-1" href="course-watch.html?id=' +
           escapeHtml(String(id)) +

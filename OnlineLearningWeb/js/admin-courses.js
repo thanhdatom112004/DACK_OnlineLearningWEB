@@ -62,10 +62,15 @@
         }
       }
     }
+    var priceInput = document.getElementById("course-price");
+    var pv = OLApi.validatePriceVnd(priceInput ? priceInput.value : 0);
+    if (!pv.ok) {
+      throw new Error(pv.message);
+    }
     return {
       id: document.getElementById("course-id").value.trim(),
       title: document.getElementById("course-title").value.trim(),
-      price: Number(document.getElementById("course-price").value || 0),
+      price: pv.value,
       category: document.getElementById("course-category").value.trim(),
       description: document.getElementById("course-description").value.trim(),
       images: document.getElementById("course-images").value.trim(),
@@ -260,8 +265,8 @@
           tr.innerHTML =
             "<td>" +
             esc(c.title) +
-            "</td><td>$" +
-            esc(c.price || 0) +
+            "</td><td>" +
+            esc(OLApi.formatPriceVnd(c.price || 0)) +
             "</td><td>" +
             esc(c.category || "") +
             '</td><td><button class="btn btn-sm btn-outline-success mr-1 btn-view">Xem</button><button class="btn btn-sm btn-outline-primary mr-1 btn-edit">Sửa</button><button class="btn btn-sm btn-outline-danger btn-del">Xóa</button></td>';
