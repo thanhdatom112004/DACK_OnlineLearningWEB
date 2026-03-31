@@ -11,6 +11,7 @@ const userController = require("../controllers/users");
 const userModel = require("../models/users");
 const roleModel = require("../models/roles");
 const { sendMail } = require("../utils/mailHandler");
+const { uploadChatImage } = require("../utils/uploadHandler");
 
 // POST /api/auth/register
 router.post("/register", userPostValidation, validateResult, async function (req, res, next) {
@@ -143,13 +144,37 @@ router.put("/profile", checkLogin, async function (req, res, next) {
       const a = String(avatarUrl).trim();
       if (a === "") {
         user.avatarUrl = "https://i.sstatic.net/l60Hf.png";
-      } else if (!/^https?:\/\//i.test(a) && !a.startsWith("data:")) {
-        return res.status(400).send({ message: "Avatar phải là URL (http/https) hoặc data URL" });
+      } else if (
+        !/^https?:\/\//i.test(a) &&
+        !a.startsWith("data:") &&
+        !a.startsWith("/")
+      ) {
+        return res.status(400).send({
+          message: "Avatar phải là URL (http/https), đường dẫn /uploads/... hoặc data URL",
+        });
       } else {
         user.avatarUrl = a;
       }
     }
 
+    await user.save();
+    const populated = await userController.FindByID(user._id);
+    res.send(safeUserDoc(populated));
+  } catch (e) {
+    res.status(400).send({ message: String(e.message || e) });
+  }
+});
+
+// POST /api/auth/profile/avatar — upload ảnh đại diện (multipart field: file)
+router.post("/profile/avatar", checkLogin, uploadChatImage.single("file"), async function (req, res) {
+  try {
+    if (!req.file) {
+      return res.status(400).send({ message: "Vui long chon file anh" });
+    }
+    const rel = "/uploads/chat/" + req.file.filename;
+    const user = await userModel.findOne({ _id: req.userId, isDeleted: false });
+    if (!user) return res.status(404).send({ message: "user not found" });
+    user.avatarUrl = rel;
     await user.save();
     const populated = await userController.FindByID(user._id);
     res.send(safeUserDoc(populated));

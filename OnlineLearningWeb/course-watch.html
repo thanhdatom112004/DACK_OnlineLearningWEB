@@ -3,84 +3,103 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-  <title>Xem khóa học</title>
+  <title>Xem khóa học — StudyLab</title>
   <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700,800,900" rel="stylesheet" />
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
   <link rel="stylesheet" href="css/bootstrap.min.css" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/chat-widget.css" />
-  <style>
-    /* ~3 bài học hiển thị, phần còn lại cuộn trong khung */
-    .cw-lessons-scroll {
-      max-height: 13rem;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-  </style>
+  <link rel="stylesheet" href="css/course-watch.css" />
 </head>
-<body>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<body class="cw-body">
+  <nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
     <div class="container">
       <a class="navbar-brand" href="index.html"><span>Study</span>Lab</a>
-      <ul class="navbar-nav ml-auto">
-        <li class="nav-item"><a href="course.html" class="nav-link">Khóa học</a></li>
-        <li class="nav-item"><a href="login.html" class="nav-link">Đăng nhập</a></li>
-      </ul>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Menu">
+        <span class="oi oi-menu"></span> Menu
+      </button>
+      <div class="collapse navbar-collapse" id="ftco-nav">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
+          <li class="nav-item"><a href="course.html" class="nav-link">Khóa học</a></li>
+          <li class="nav-item"><a href="cart.html" class="nav-link">Giỏ đăng ký</a></li>
+          <li class="nav-item"><a href="contact.html" class="nav-link">Contact</a></li>
+          <li class="nav-item"><a href="login.html" class="nav-link">Đăng nhập</a></li>
+        </ul>
+      </div>
     </div>
   </nav>
 
-  <section class="ftco-section">
+  <header class="cw-hero">
     <div class="container">
-      <div id="cw-alert" class="alert d-none" role="alert"></div>
-      <h3 id="cw-title" class="mb-2">Đang tải khóa học...</h3>
-      <p id="cw-desc" class="text-muted mb-4"></p>
+      <a href="course.html" class="cw-back-link"><span class="fa fa-arrow-left"></span> Danh sách khóa học</a>
+      <h1 id="cw-title" class="cw-title">Đang tải khóa học...</h1>
+      <p id="cw-desc" class="cw-desc"></p>
+    </div>
+  </header>
 
-      <div class="row">
-        <div class="col-md-8 mb-3">
-          <!-- YouTube cần iframe; file/mp4 dùng thẻ video -->
-          <div id="cw-player-wrap" class="position-relative w-100 bg-dark" style="min-height:240px;">
-            <video
-              id="cw-player"
-              class="w-100"
-              controls
-              playsinline
-              style="display:none;max-height:430px;background:#000;"
-            ></video>
-            <iframe
-              id="cw-youtube"
-              class="w-100"
-              title="YouTube video"
-              style="display:none;min-height:360px;max-height:430px;border:0;"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowfullscreen
-              referrerpolicy="strict-origin-when-cross-origin"
-            ></iframe>
+  <section class="cw-section">
+    <div class="container">
+      <div id="cw-alert" class="alert d-none rounded-lg border-0 shadow-sm" role="alert"></div>
+
+      <div class="row align-items-start">
+        <div class="col-lg-8 mb-4 mb-lg-0">
+          <div class="cw-player-shell">
+            <div id="cw-player-wrap" class="cw-player-wrap">
+              <div class="cw-player-inner">
+                <video
+                  id="cw-player"
+                  class="w-100"
+                  controls
+                  playsinline
+                  style="display:none;background:#000;"
+                ></video>
+                <iframe
+                  id="cw-youtube"
+                  class="w-100"
+                  title="YouTube video"
+                  style="display:none;border:0;"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowfullscreen
+                  referrerpolicy="strict-origin-when-cross-origin"
+                ></iframe>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="col-md-4">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Danh sách bài học</h5>
-              <div class="cw-lessons-scroll border rounded">
+
+        <div class="col-lg-4">
+          <aside class="cw-sidebar">
+            <div class="cw-sidebar-head">
+              <h2 class="cw-sidebar-title">
+                <span class="fa fa-list-ul mr-2" aria-hidden="true"></span>
+                Nội dung bài học
+              </h2>
+            </div>
+            <div class="cw-sidebar-body">
+              <div class="cw-lessons-scroll">
                 <div id="cw-lessons" class="list-group list-group-flush"></div>
               </div>
-              <button type="button" id="cw-open-quiz" class="btn btn-outline-success btn-sm btn-block mt-3" disabled>
+            </div>
+            <div class="cw-sidebar-foot">
+              <button type="button" id="cw-open-quiz" class="btn btn-outline-success btn-block" disabled>
                 <span class="fa fa-pencil-square-o mr-1" aria-hidden="true"></span>
                 Làm bài tập
               </button>
             </div>
-          </div>
+          </aside>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Trắc nghiệm & flashcard — chỉ hiện trong modal khi bấm "Làm bài tập" -->
   <div class="modal fade" id="cw-quiz-modal" tabindex="-1" role="dialog" aria-labelledby="cw-quiz-modal-title" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
-      <div class="modal-content border-success">
-        <div class="modal-header bg-light py-3">
-          <h5 class="modal-title text-success" id="cw-quiz-modal-title">Làm bài tập</h5>
+      <div class="modal-content">
+        <div class="modal-header py-3">
+          <h5 class="modal-title" id="cw-quiz-modal-title">
+            <span class="fa fa-check-square-o text-success mr-2"></span>Làm bài tập
+          </h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Đóng">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -90,9 +109,9 @@
           <div id="cw-quiz-stats" class="small text-muted mb-3"></div>
           <div id="cw-quiz-content"></div>
         </div>
-        <div class="modal-footer flex-wrap">
-          <button type="button" id="cw-quiz-submit" class="btn btn-success" style="display: none">Nộp bài (lưu điểm)</button>
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+        <div class="modal-footer flex-wrap bg-light border-top">
+          <button type="button" id="cw-quiz-submit" class="btn btn-success rounded-pill px-4" style="display: none">Nộp bài (lưu điểm)</button>
+          <button type="button" class="btn btn-outline-secondary rounded-pill" data-dismiss="modal">Đóng</button>
         </div>
       </div>
     </div>
@@ -107,4 +126,3 @@
   <script src="js/course-watch.js"></script>
 </body>
 </html>
-

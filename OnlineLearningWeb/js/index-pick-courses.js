@@ -2,6 +2,7 @@
  * Trang chủ — khối "Pick Your Course": load khóa học từ API.
  * Giá = 0: hiển thị Miễn phí, nút "Đăng ký ngay" (thêm vào giỏ đăng ký).
  * Giá > 0: hiển thị giá, nút "Thêm vào giỏ".
+ * Đã có enrollment: badge "Đã đăng ký" thay cho nút giỏ.
  */
 (function () {
   var row = document.getElementById("index-pick-courses-row");
@@ -48,8 +49,32 @@
     return "";
   }
 
-  OLApi.courses()
-    .then(function (list) {
+  var enrolledByCourseId = {};
+
+  function setEnrolledFromList(enrollments) {
+    enrolledByCourseId = {};
+    (enrollments || []).forEach(function (en) {
+      var cid = "";
+      if (en && en.course && en.course._id) cid = String(en.course._id);
+      else if (en && en.course) cid = String(en.course);
+      if (cid) enrolledByCourseId[cid] = true;
+    });
+  }
+
+  function isEnrolled(courseId) {
+    return !!enrolledByCourseId[String(courseId)];
+  }
+
+  var enrollmentsPromise = OLApi.getToken()
+    ? OLApi.enrollmentsMine().catch(function () {
+        return [];
+      })
+    : Promise.resolve([]);
+
+  Promise.all([OLApi.courses(), enrollmentsPromise])
+    .then(function (arr) {
+      var list = arr[0] || [];
+      setEnrolledFromList(arr[1] || []);
       if (loading) loading.remove();
       row.innerHTML = "";
       if (!list || !list.length) {
@@ -70,41 +95,44 @@
         var col = document.createElement("div");
         // Không dùng .ftco-animate: template ẩn opacity:0 cho tới khi Waypoint chạy — nội dung
         // thêm sau khi load API không được Waypoint bắt → màn hình trống vĩnh viễn.
-        col.className = "col-md-4";
+        col.className = "col-md-4 d-flex mb-4";
         col.innerHTML =
-          '<div class="project-wrap">' +
+          '<div class="project-wrap index-pick-card d-flex flex-column h-100 w-100">' +
           '<a href="course-watch.html?id=' +
           encodeURIComponent(String(id)) +
           '" class="img index-pick-course-img">' +
           '<span class="price">' +
           escapeHtml(cat) +
           "</span></a>" +
-          '<div class="text p-4">' +
+          '<div class="text p-4 d-flex flex-column flex-grow-1">' +
           "<h3><a href=\"course-watch.html?id=" +
           encodeURIComponent(String(id)) +
           '">' +
           escapeHtml(c.title || "") +
           "</a></h3>" +
-          '<p class="advisor small text-muted">' +
+          '<p class="advisor small text-muted mb-0">' +
           escapeHtml(desc || " ") +
           "</p>" +
-          '<ul class="d-flex justify-content-between align-items-center flex-wrap">' +
-          '<li class="price mb-1">' +
+          '<ul class="list-unstyled index-pick-meta">' +
+          '<li class="price">' +
           escapeHtml(priceLabel) +
           "</li>" +
-          "<li class=\"text-right\">" +
-          '<a class="btn btn-sm btn-outline-success mr-1 mb-1" href="course-watch.html?id=' +
+          '<li class="index-pick-actions">' +
+          '<a class="btn btn-sm btn-outline-success" href="course-watch.html?id=' +
           encodeURIComponent(String(id)) +
           '">Xem bài học</a>' +
-          '<button type="button" class="btn btn-sm mb-1 btn-pick-cart ' +
-          (free ? "btn-success" : "btn-primary") +
-          '" data-id="' +
-          escapeHtml(String(id)) +
-          '" data-free="' +
-          (free ? "1" : "0") +
-          '">' +
-          (free ? "Đăng ký ngay" : "Thêm vào giỏ") +
-          "</button></li>" +
+          (isEnrolled(id)
+            ? '<span class="sl-enrolled-tag sl-enrolled-tag--compact" role="status"><span class="sl-enrolled-tag__icon fa fa-check" aria-hidden="true"></span><span class="sl-enrolled-tag__text">Đã đăng ký</span></span>'
+            : '<button type="button" class="btn btn-sm btn-pick-cart ' +
+              (free ? "btn-success" : "btn-primary") +
+              '" data-id="' +
+              escapeHtml(String(id)) +
+              '" data-free="' +
+              (free ? "1" : "0") +
+              '">' +
+              (free ? "Đăng ký ngay" : "Thêm vào giỏ") +
+              "</button>") +
+          "</li>" +
           "</ul></div></div>";
         row.appendChild(col);
         var imgLink = col.querySelector(".index-pick-course-img");

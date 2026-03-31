@@ -416,14 +416,14 @@
       vids.forEach(function (v, idx) {
         var item = document.createElement("button");
         item.type = "button";
-        item.className = "list-group-item list-group-item-action";
+        item.className = "list-group-item list-group-item-action cw-lesson-item";
         item.setAttribute("data-idx", String(idx));
         item.innerHTML =
-          "<strong>" +
+          "<span class='d-block font-weight-bold'>" +
           esc(v.title || "Bài " + (idx + 1)) +
-          "</strong><br><small class='text-muted'>Video " +
+          "</span><span class='cw-lesson-meta'>Video " +
           (idx + 1) +
-          "</small>";
+          "</span>";
         item.addEventListener("click", function () {
           playVideo(v, idx);
         });

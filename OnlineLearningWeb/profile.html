@@ -15,6 +15,37 @@
   <link rel="stylesheet" href="css/flaticon.css">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/chat-widget.css">
+  <style>
+    .pf-avatar-preview-wrap {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      flex-shrink: 0;
+    }
+    #pf-avatar-preview {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      background: #f1f5f9;
+      z-index: 2;
+      display: none;
+    }
+    #pf-avatar-preview.is-visible {
+      display: block;
+    }
+    #pf-avatar-preview-ph {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+    #pf-avatar-preview-ph.is-hidden {
+      visibility: hidden;
+    }
+  </style>
 </head>
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
@@ -94,8 +125,36 @@
                 <input type="text" class="form-control" id="pf-fullname" placeholder="Họ tên hiển thị" autocomplete="name" />
               </div>
               <div class="form-group">
-                <label for="pf-avatar-url">Ảnh đại diện (URL)</label>
-                <input type="text" class="form-control" id="pf-avatar-url" placeholder="https://..." />
+                <label>Ảnh đại diện</label>
+                <div class="d-flex flex-wrap align-items-start">
+                  <div class="pf-avatar-preview-wrap mr-3 mb-2">
+                    <img
+                      id="pf-avatar-preview"
+                      src=""
+                      alt="Xem trước avatar"
+                      class="rounded-circle border shadow-sm"
+                    />
+                    <div
+                      id="pf-avatar-preview-ph"
+                      class="rounded-circle border bg-light d-flex align-items-center justify-content-center"
+                      style="width: 120px; height: 120px"
+                    >
+                      <span class="fa fa-user text-muted" style="font-size: 48px"></span>
+                    </div>
+                  </div>
+                  <div class="flex-grow-1" style="min-width: 200px">
+                    <input type="file" id="pf-avatar-file" accept="image/*" class="d-none" />
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="pf-avatar-pick">
+                      <span class="fa fa-folder-open mr-1"></span>Chọn ảnh
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm ml-1" id="pf-avatar-upload" disabled>
+                      <span class="fa fa-cloud-upload mr-1"></span>Tải lên
+                    </button>
+                    <p class="small text-muted mt-2 mb-2">JPG, PNG, GIF · tối đa 5MB. Chọn ảnh để xem trước, rồi bấm Tải lên.</p>
+                    <label for="pf-avatar-url" class="small text-muted d-block mb-1">Hoặc dán URL ảnh</label>
+                    <input type="text" class="form-control form-control-sm" id="pf-avatar-url" placeholder="https://... hoặc để trống" />
+                  </div>
+                </div>
               </div>
               <button type="submit" class="btn btn-primary">Lưu thông tin</button>
             </form>

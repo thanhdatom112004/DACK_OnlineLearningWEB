@@ -43,6 +43,22 @@
 
   var allCourses = [];
   var selectedCategories = {};
+  /** courseId -> true nếu user đã có enrollment */
+  var enrolledByCourseId = {};
+
+  function setEnrolledFromList(enrollments) {
+    enrolledByCourseId = {};
+    (enrollments || []).forEach(function (en) {
+      var cid = "";
+      if (en && en.course && en.course._id) cid = String(en.course._id);
+      else if (en && en.course) cid = String(en.course);
+      if (cid) enrolledByCourseId[cid] = true;
+    });
+  }
+
+  function isEnrolled(courseId) {
+    return !!enrolledByCourseId[String(courseId)];
+  }
 
   function renderCategoryFilter(courses, categoriesFromApi) {
     if (!categoryFilterList) return;
@@ -115,30 +131,35 @@
         var col = document.createElement("div");
         col.className = "col-md-6 d-flex align-items-stretch";
         col.innerHTML =
-          '<div class="project-wrap w-100">' +
+          '<div class="project-wrap course-list-card w-100 d-flex flex-column h-100">' +
           '<a href="course-watch.html?id=' +
           encodeURIComponent(String(id)) +
           '" class="img course-list-img">' +
           '<span class="price">' +
           escapeHtml(cat) +
           "</span></a>" +
-          '<div class="text p-4">' +
+          '<div class="text p-4 d-flex flex-column flex-grow-1">' +
           "<h3>" +
           escapeHtml(c.title || "") +
           "</h3>" +
-          '<p class="advisor small text-muted">' +
+          '<p class="advisor small text-muted mb-0">' +
           escapeHtml((c.description || "").slice(0, 120)) +
           (c.description && c.description.length > 120 ? "…" : "") +
           "</p>" +
-          '<ul class="d-flex justify-content-between align-items-center">' +
+          '<ul class="list-unstyled course-list-meta">' +
           '<li class="price">' +
           escapeHtml(OLApi.formatCoursePriceDisplay(price)) +
           "</li>" +
-          '<li><a class="btn btn-sm btn-outline-success mr-1" href="course-watch.html?id=' +
+          '<li class="course-list-actions">' +
+          '<a class="btn btn-sm btn-outline-success" href="course-watch.html?id=' +
           escapeHtml(String(id)) +
-          '">Xem bài học</a><button type="button" class="btn btn-sm btn-primary btn-add-cart" data-id="' +
-          escapeHtml(String(id)) +
-          '">Thêm vào giỏ</button></li>' +
+          '">Xem bài học</a>' +
+          (isEnrolled(id)
+            ? '<span class="sl-enrolled-tag sl-enrolled-tag--compact" role="status"><span class="sl-enrolled-tag__icon fa fa-check" aria-hidden="true"></span><span class="sl-enrolled-tag__text">Đã đăng ký</span></span>'
+            : '<button type="button" class="btn btn-sm btn-primary btn-add-cart" data-id="' +
+              escapeHtml(String(id)) +
+              '">Thêm vào giỏ</button>') +
+          "</li>" +
           "</ul></div></div>";
         container.appendChild(col);
         var imgLink = col.querySelector(".course-list-img");
@@ -165,10 +186,17 @@
       });
   }
 
-  Promise.all([OLApi.courses(), OLApi.categories()])
+  var enrollmentsPromise = OLApi.getToken()
+    ? OLApi.enrollmentsMine().catch(function () {
+        return [];
+      })
+    : Promise.resolve([]);
+
+  Promise.all([OLApi.courses(), OLApi.categories(), enrollmentsPromise])
     .then(function (arr) {
       var list = arr[0] || [];
       var categories = arr[1] || [];
+      setEnrolledFromList(arr[2] || []);
       allCourses = list;
       renderCategoryFilter(list, categories);
       renderCourses(list);

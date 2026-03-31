@@ -145,6 +145,10 @@
     profileUpdate: function (body) {
       return apiFetch("/api/auth/profile", { method: "PUT", body: body });
     },
+    /** Upload avatar (FormData với field tên `file`) */
+    profileAvatarUpload: function (formData) {
+      return apiFetch("/api/auth/profile/avatar", { method: "POST", body: formData });
+    },
     changePassword: function (oldPassword, newPassword) {
       return apiFetch("/api/auth/changepassword", {
         method: "POST",

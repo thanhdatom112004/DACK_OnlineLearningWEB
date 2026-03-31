@@ -10105,3 +10105,205 @@ textarea.form-control {
   100% {
     stroke-dasharray: 89, 200;
     stroke-dashoffset: -136px; } }
+
+/* Nhãn trạng thái "Đã đăng ký" — thẻ khóa học (trang chủ & course) */
+.sl-enrolled-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem 0.35rem 0.45rem;
+  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: #047857;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 45%, #a7f3d0 100%);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.12);
+  vertical-align: middle;
+  white-space: nowrap;
+  line-height: 1.15;
+}
+
+.sl-enrolled-tag__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  font-size: 0.6rem;
+  color: #fff;
+  background: linear-gradient(145deg, #10b981, #059669);
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(5, 150, 105, 0.35);
+}
+
+.sl-enrolled-tag__text {
+  padding-right: 0.05rem;
+}
+
+/* Cùng cỡ gần với .btn-sm — chữ nhỏ, gọn cạnh nút "Xem bài học" */
+.sl-enrolled-tag--compact {
+  padding: 0.18rem 0.42rem 0.18rem 0.28rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  gap: 0.22rem;
+  letter-spacing: 0;
+  box-shadow: 0 1px 2px rgba(16, 185, 129, 0.14);
+}
+
+.sl-enrolled-tag--compact .sl-enrolled-tag__icon {
+  width: 0.85rem;
+  height: 0.85rem;
+  font-size: 0.45rem;
+}
+
+/* Pick Your Course (trang chủ): thẻ cùng chiều cao, footer một dòng */
+#index-pick-courses-row {
+  align-items: stretch;
+}
+
+#index-pick-courses-row > [class*="col-"] {
+  display: flex;
+}
+
+.index-pick-card {
+  margin-bottom: 0 !important;
+}
+
+.index-pick-card > .text {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.project-wrap.index-pick-card .text ul.index-pick-meta {
+  margin-top: auto !important;
+  margin-bottom: 0 !important;
+  padding: 1rem 0 0 !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  width: 100%;
+  display: flex !important;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 0.75rem;
+  row-gap: 0.5rem;
+}
+
+.project-wrap.index-pick-card .text ul.index-pick-meta > li {
+  display: flex !important;
+  align-items: center;
+}
+
+/* Giá có thể co; nhóm nút KHÔNG được bị flex nén (tránh "Xem bài học" xuống nhiều dòng) */
+.project-wrap.index-pick-card .text ul.index-pick-meta > li.price {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: #4986fc;
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.project-wrap.index-pick-card .text ul.index-pick-meta > li.index-pick-actions {
+  flex: 0 0 auto !important;
+  min-width: min-content;
+  max-width: 100%;
+  display: inline-flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.project-wrap.index-pick-card .index-pick-actions .btn {
+  white-space: nowrap !important;
+  flex-shrink: 0;
+}
+
+.project-wrap.index-pick-card .index-pick-actions .sl-enrolled-tag {
+  flex-shrink: 0;
+}
+
+@media (max-width: 575.98px) {
+  .project-wrap.index-pick-card .text ul.index-pick-meta > li.index-pick-actions {
+    flex-basis: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* Trang course.html — lưới khóa học */
+#course-list {
+  align-items: stretch;
+}
+
+.course-list-card {
+  margin-bottom: 0 !important;
+}
+
+.course-list-card > .text {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.project-wrap.course-list-card .text ul.course-list-meta {
+  margin-top: auto !important;
+  margin-bottom: 0 !important;
+  padding: 1rem 0 0 !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  width: 100%;
+  display: flex !important;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 0.75rem;
+  row-gap: 0.5rem;
+}
+
+.project-wrap.course-list-card .text ul.course-list-meta > li {
+  display: flex !important;
+  align-items: center;
+}
+
+.project-wrap.course-list-card .text ul.course-list-meta > li.price {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: #4986fc;
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.project-wrap.course-list-card .text ul.course-list-meta > li.course-list-actions {
+  flex: 0 0 auto !important;
+  min-width: min-content;
+  max-width: 100%;
+  display: inline-flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.project-wrap.course-list-card .course-list-actions .btn {
+  white-space: nowrap !important;
+  flex-shrink: 0;
+}
+
+.project-wrap.course-list-card .course-list-actions .sl-enrolled-tag {
+  flex-shrink: 0;
+}
+
+@media (max-width: 767.98px) {
+  .project-wrap.course-list-card .text ul.course-list-meta > li.course-list-actions {
+    flex-basis: 100%;
+    justify-content: flex-start;
+  }
+}
