@@ -37,6 +37,7 @@ app.use("/api/courses", require("./routes/courses"));
 app.use("/api/carts", require("./routes/carts"));
 app.use("/api/enrollments", require("./routes/enrollments"));
 app.use("/api/lesson-quizzes", require("./routes/lessonQuizzes"));
+app.use("/api/payment-orders", require("./routes/paymentOrders"));
 
 // Health check
 app.get("/api/health", (req, res) => {
