@@ -6,6 +6,65 @@ Xem chi tiết trong **[CAP-NHAT-ENROLLMENT-QUIZ.md](./CAP-NHAT-ENROLLMENT-QUIZ.
 
 ---
 
+## Cập nhật mới nhất (thanh toán chuyển khoản + admin)
+
+### 1) Luồng thanh toán chuyển khoản có xác nhận admin
+- Thêm trang người dùng `OnlineLearningWeb/payment.html`:
+  - Hiển thị thông tin chuyển khoản:
+    - Ngân hàng: **TECHCOMBANK**
+    - Tên tài khoản: **Nguyễn Lê Thành Đạt**
+    - STK: **19038491122011**
+  - Hiển thị QR VietQR đầy đủ thông tin (bank + account + amount + transfer code).
+  - Nút **"Tôi đã chuyển khoản"** gửi yêu cầu tạo đơn thanh toán (trạng thái chờ xác nhận).
+- Thêm backend quản lý đơn:
+  - Model: `backend/models/paymentOrders.js`
+  - Route: `backend/routes/paymentOrders.js`
+  - Mount API trong `backend/app.js`: `app.use("/api/payment-orders", ...)`
+- API chính:
+  - `POST /api/payment-orders` (user tạo đơn từ giỏ)
+  - `GET /api/payment-orders` (admin xem danh sách đơn, có thể lọc trạng thái)
+  - `POST /api/payment-orders/:id/confirm` (admin xác nhận thanh toán)
+- Khi admin xác nhận:
+  - Cập nhật `enrollments` cho user
+  - Tăng `inventory.soldCount`
+  - Làm trống giỏ hàng của user
+  - Đơn chuyển sang trạng thái `PAID`
+
+### 2) Trang admin xác nhận thanh toán
+- Thêm trang `OnlineLearningWeb/admin-payment-orders.html`
+- Thêm script `OnlineLearningWeb/js/admin-payment-orders.js`
+- Thêm menu vào dashboard admin để vào trang quản lý thanh toán.
+- Trang hiển thị:
+  - Mã đơn, người dùng, tổng tiền, trạng thái, thời gian
+  - Nút **Xác nhận** cho đơn đang `PENDING`
+
+### 3) Cập nhật giỏ hàng và trang khóa học
+- `OnlineLearningWeb/cart.html` + `js/cart-page.js`:
+  - Bỏ thanh toán demo cũ
+  - Bỏ nút `-1`
+  - Mỗi khóa học chỉ thêm một lần
+  - Thêm ảnh nhỏ (thumbnail) cạnh tên khóa học
+  - Nút thanh toán chuyển hướng sang `payment.html`
+- `OnlineLearningWeb/course.html` + `js/course-list.js`:
+  - Sidebar **Course Category** load động từ API category
+  - Hỗ trợ lọc khóa học theo category bằng checkbox
+
+### 4) Phân quyền giao diện theo vai trò
+- `OnlineLearningWeb/js/login-page.js`:
+  - Login thành công:
+    - `ADMIN` -> chuyển thẳng `admin-dashboard.html`
+    - `USER` -> chuyển `course.html`
+- `OnlineLearningWeb/js/auth-nav.js`:
+  - Dropdown tài khoản hiển thị phù hợp theo role (ADMIN/USER)
+- Đồng bộ header các trang admin (`admin-dashboard`, `admin-courses`, `admin-categories`, `admin-users`, `admin-lesson-quizzes`, `admin-payment-orders`)
+
+### 5) Chặn học khóa có phí trước khi admin xác nhận
+- `OnlineLearningWeb/js/course-watch.js`:
+  - Khóa **miễn phí (`price <= 0`)**: học ngay
+  - Khóa **trả phí (`price > 0`)**: chỉ học khi đã có enrollment (sau xác nhận admin) hoặc là ADMIN
+
+---
+
 ## Chạy dự án (hướng A: xem khóa học + giỏ đăng ký)
 
 1. **Backend** (`backend/`):
