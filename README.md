@@ -1,5 +1,13 @@
 # DACK_OnlineLearningWEB
 
+## Cập nhật hôm nay (01/04/2026)
+
+- **Chat hỗ trợ (admin)**: Socket.io trên server, model tin nhắn, API/route messages, handler chat; trang `admin-chat` + script tương ứng, liên kết từ dashboard admin; phục vụ upload/static cho chat (multer, thư mục upload).
+- **Hồ sơ người dùng**: upload ảnh đại diện (`POST /api/auth/profile/avatar`), cập nhật `avatarUrl` qua profile; giao diện profile xem/preview avatar.
+- **Backend**: file `backend/bin/www.js` được **theo dõi trong Git** (ngoại lệ trong `.gitignore` so với rule chung `bin/*` dành cho build Visual Studio).
+
+---
+
 ## Cập nhật gần đây (enrollment + quiz)
 
 Xem chi tiết trong **[CAP-NHAT-ENROLLMENT-QUIZ.md](./CAP-NHAT-ENROLLMENT-QUIZ.md)** (middleware enrollment, route quiz, `course-watch.js`, hướng dẫn kiểm tra).
