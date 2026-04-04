@@ -2,16 +2,32 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
-
 const { checkLogin } = require("../middleware/authHandler");
 const { userPostValidation, validateResult } = require("../middleware/validationHandler");
 
 const userController = require("../controllers/users");
 const userModel = require("../models/users");
 const roleModel = require("../models/roles");
-const { sendMail } = require("../utils/mailHandler");
+const { sendPasswordResetOtp, sendEmailVerificationOtp } = require("../utils/mailHandler");
+const { generateSixDigitOtp } = require("../utils/otp");
 const { uploadChatImage } = require("../utils/uploadHandler");
+
+/** Quên/đặt lại mật khẩu: tìm user theo email hoặc tên đăng nhập (không có @) */
+async function findUserByEmailOrUsername(raw) {
+  const id = raw != null ? String(raw).trim() : "";
+  if (!id) return null;
+  if (id.indexOf("@") !== -1) {
+    return userModel.findOne({ email: id.toLowerCase(), isDeleted: false });
+  }
+  return userModel.findOne({ username: id, isDeleted: false });
+}
+
+function maskEmailHint(email) {
+  const e = String(email || "").trim();
+  const at = e.indexOf("@");
+  if (at < 1) return "";
+  return e[0] + "***" + e.slice(at);
+}
 
 // POST /api/auth/register
 router.post("/register", userPostValidation, validateResult, async function (req, res, next) {
@@ -40,21 +56,47 @@ router.post("/register", userPostValidation, validateResult, async function (req
     );
 
     const populatedUser = await userController.FindByID(newUser._id);
-    // Avoid returning hashed password
-    const { password: _pw, ...safeUser } = populatedUser.toObject();
-    res.send(safeUser);
+    res.send(safeUserDoc(populatedUser));
   } catch (e) {
-    res.status(400).send({ message: String(e.message || e) });
+    const msg = String(e.message || e);
+    if (msg.indexOf("E11000") !== -1 || msg.indexOf("duplicate key") !== -1) {
+      if (msg.indexOf("username") !== -1) {
+        return res.status(400).send({
+          message:
+            "Tên đăng nhập đã tồn tại. Hãy đăng nhập hoặc dùng tên khác.",
+        });
+      }
+      if (msg.indexOf("email") !== -1) {
+        return res.status(400).send({
+          message: "Email đã được đăng ký. Hãy đăng nhập hoặc dùng email khác.",
+        });
+      }
+      return res.status(400).send({
+        message: "Tên đăng nhập hoặc email đã tồn tại. Vui lòng kiểm tra lại.",
+      });
+    }
+    res.status(400).send({ message: msg });
   }
 });
 
-// POST /api/auth/login
+// POST /api/auth/login — username hoặc email + password
 router.post("/login", async function (req, res, next) {
   try {
     const { username, password } = req.body;
-    let getUser = await userController.FindByUsername(username);
+    const raw = username != null ? String(username).trim() : "";
+    if (!raw) {
+      return res.status(400).send({ message: "Vui lòng nhập tên đăng nhập hoặc email" });
+    }
+
+    let getUser = null;
+    if (raw.indexOf("@") !== -1) {
+      getUser = await userController.FindByEmail(raw.toLowerCase());
+    } else {
+      getUser = await userController.FindByUsername(raw);
+    }
+
     if (!getUser) {
-      return res.status(404).send({ message: "username khong ton tai hoac thong tin dang nhap sai" });
+      return res.status(404).send({ message: "Thông tin đăng nhập không đúng." });
     }
 
     let result = false;
@@ -73,7 +115,7 @@ router.post("/login", async function (req, res, next) {
     }
 
     if (!result) {
-      return res.status(404).send({ message: "username khong ton tai hoac thong tin dang nhap sai" });
+      return res.status(404).send({ message: "Thông tin đăng nhập không đúng." });
     }
 
     let token = jwt.sign(
@@ -89,17 +131,26 @@ router.post("/login", async function (req, res, next) {
       maxAge: 60 * 60 * 1000,
     });
     const populatedUser = await userController.FindByID(getUser._id);
-    const { password: _pw, ...safeUser } = populatedUser.toObject();
-    res.send({ token, user: safeUser });
+    res.send({ token, user: safeUserDoc(populatedUser) });
   } catch (e) {
     res.status(500).send({ message: String(e.message || e) });
   }
 });
 
+/** Tài khoản cũ không có field emailVerified → coi như đã xác thực */
+function isEmailVerified(userDoc) {
+  if (!userDoc) return false;
+  const v = userDoc.emailVerified;
+  if (v === true) return true;
+  if (v === false) return false;
+  return true;
+}
+
 function safeUserDoc(user) {
   if (!user) return null;
   const o = user.toObject ? user.toObject() : user;
   const { password: _p, ...rest } = o;
+  rest.emailVerified = isEmailVerified(user);
   return rest;
 }
 
@@ -225,45 +276,161 @@ router.post("/changepassword", checkLogin, async function (req, res, next) {
   }
 });
 
-// POST /api/auth/forgotpassword
-// Lưu ý: cần SMTP cấu hình mới gửi được mail
-router.post("/forgotpassword", async function (req, res, next) {
+// POST /api/auth/verify-email/send-otp — gửi OTP xác thực email (đã đăng nhập)
+router.post("/verify-email/send-otp", checkLogin, async function (req, res) {
   try {
-    let { email } = req.body;
-    let user = await userController.FindByEmail(email);
-    if (!user) return res.send("email khong ton tai");
+    const user = await userModel.findOne({ _id: req.userId, isDeleted: false });
+    if (!user) return res.status(404).send({ message: "user not found" });
+    if (isEmailVerified(user)) {
+      return res.status(400).send({ message: "Email đã được xác thực." });
+    }
 
-    user.forgotPasswordToken = crypto.randomBytes(31).toString("hex");
-    user.forgotPasswordTokenExp = new Date(Date.now() + 10 * 60 * 1000);
+    const otp = generateSixDigitOtp();
+    await sendEmailVerificationOtp(user.email, otp);
+
+    const salt = await bcrypt.genSalt(10);
+    user.emailVerifyOtpHash = await bcrypt.hash(otp, salt);
+    const minutes = Math.min(60, Math.max(1, Number(process.env.EMAIL_VERIFY_OTP_MINUTES || 15)));
+    user.emailVerifyOtpExp = new Date(Date.now() + minutes * 60 * 1000);
     await user.save();
 
-    // If SMTP not configured, tell user
-    await sendMail(
-      user.email,
-      (process.env.RESET_PASSWORD_URL_BASE || "http://localhost:3001") + "/api/auth/resetpassword/" + user.forgotPasswordToken
-    );
+    res.json({ ok: true, message: "Đã gửi mã OTP tới email của bạn." });
+  } catch (e) {
+    console.error("[auth/verify-email/send-otp]", e.message || e);
+    res.status(500).send({ message: String(e.message || e) });
+  }
+});
 
-    res.send("gui mail reset pass");
+// POST /api/auth/verify-email/confirm — body: { otp }
+router.post("/verify-email/confirm", checkLogin, async function (req, res) {
+  try {
+    const otp = req.body && req.body.otp !== undefined ? String(req.body.otp).trim() : "";
+    if (!/^\d{6}$/.test(otp)) {
+      return res.status(400).send({ message: "Mã OTP phải gồm 6 chữ số" });
+    }
+
+    const user = await userModel.findOne({ _id: req.userId, isDeleted: false });
+    if (!user) return res.status(404).send({ message: "user not found" });
+
+    if (isEmailVerified(user)) {
+      const populated = await userController.FindByID(user._id);
+      return res.json({
+        ok: true,
+        message: "Email đã được xác thực trước đó.",
+        user: safeUserDoc(populated),
+      });
+    }
+
+    if (!user.emailVerifyOtpHash || !user.emailVerifyOtpExp) {
+      return res.status(400).send({ message: "Chưa có mã OTP. Vui lòng bấm Gửi mã OTP trước." });
+    }
+    if (user.emailVerifyOtpExp.getTime() <= Date.now()) {
+      return res.status(400).send({ message: "Mã OTP đã hết hạn. Vui lòng gửi lại mã." });
+    }
+
+    const otpOk = await bcrypt.compare(otp, user.emailVerifyOtpHash);
+    if (!otpOk) {
+      return res.status(400).send({ message: "Mã OTP không đúng" });
+    }
+
+    user.emailVerified = true;
+    user.emailVerifyOtpHash = undefined;
+    user.emailVerifyOtpExp = undefined;
+    await user.save();
+
+    const populated = await userController.FindByID(user._id);
+    res.json({
+      ok: true,
+      message: "Đã xác thực email thành công.",
+      user: safeUserDoc(populated),
+    });
   } catch (e) {
     res.status(500).send({ message: String(e.message || e) });
   }
 });
 
-// POST /api/auth/resetpassword/:token
-router.post("/resetpassword/:token", async function (req, res, next) {
+// POST /api/auth/forgotpassword — gửi mã OTP 6 số qua email (cần SMTP)
+router.post("/forgotpassword", async function (req, res, next) {
   try {
-    let token = req.params.token;
-    let newPassword = req.body.password;
+    const raw = req.body && req.body.email;
+    const identifier = raw != null ? String(raw).trim() : "";
+    if (!identifier) {
+      return res.status(400).send({ message: "Vui lòng nhập email hoặc tên đăng nhập" });
+    }
 
-    let getUser = await userController.FindByToken(token);
-    if (!getUser) return res.send("loi token");
+    const user = await findUserByEmailOrUsername(identifier);
+    if (!user) {
+      console.log("[auth/forgotpassword] không có tài khoản cho:", identifier);
+      return res.json({
+        delivered: false,
+        message:
+          "Không tìm thấy tài khoản. Thử email hoặc tên đăng nhập đúng như lúc đăng ký.",
+      });
+    }
 
-    getUser.password = newPassword;
-    getUser.forgotPasswordToken = "";
-    getUser.forgotPasswordTokenExp = null;
-    await getUser.save();
+    const otp = generateSixDigitOtp();
+    await sendPasswordResetOtp(user.email, otp);
+    console.log("[auth/forgotpassword] đã gửi OTP tới email DB:", user.email, "| nhập:", identifier);
 
-    res.send("da cap nhat");
+    const salt = await bcrypt.genSalt(10);
+    user.passwordResetOtpHash = await bcrypt.hash(otp, salt);
+    const minutes = Math.min(60, Math.max(1, Number(process.env.PASSWORD_RESET_OTP_MINUTES || 10)));
+    user.passwordResetOtpExp = new Date(Date.now() + minutes * 60 * 1000);
+    user.forgotPasswordToken = "";
+    user.forgotPasswordTokenExp = null;
+    await user.save();
+
+    res.json({
+      delivered: true,
+      mailHint: maskEmailHint(user.email),
+      message:
+        "Đã gửi mã OTP tới email đã đăng ký của tài khoản. Kiểm tra hộp thư và spam (có thể vài phút).",
+    });
+  } catch (e) {
+    console.error("[auth/forgotpassword]", e.message || e);
+    res.status(500).send({ message: String(e.message || e) });
+  }
+});
+
+// POST /api/auth/resetpassword — body: { email, otp, newPassword }
+router.post("/resetpassword", async function (req, res, next) {
+  try {
+    const rawEmail = req.body && req.body.email;
+    const identifier = rawEmail != null ? String(rawEmail).trim() : "";
+    const otp = req.body && req.body.otp !== undefined ? String(req.body.otp).trim() : "";
+    const newPassword = req.body && req.body.newPassword;
+
+    if (!identifier || !otp || !newPassword) {
+      return res.status(400).send({ message: "Cần email hoặc tên đăng nhập, mã OTP và mật khẩu mới" });
+    }
+    if (!/^\d{6}$/.test(otp)) {
+      return res.status(400).send({ message: "Mã OTP phải gồm 6 chữ số" });
+    }
+    if (String(newPassword).length < 8) {
+      return res.status(400).send({ message: "Mật khẩu mới tối thiểu 8 ký tự" });
+    }
+
+    const user = await findUserByEmailOrUsername(identifier);
+    if (!user || !user.passwordResetOtpHash || !user.passwordResetOtpExp) {
+      return res.status(400).send({ message: "Tài khoản hoặc mã OTP không hợp lệ, hoặc đã hết hạn" });
+    }
+    if (user.passwordResetOtpExp.getTime() <= Date.now()) {
+      return res.status(400).send({ message: "Mã OTP đã hết hạn. Vui lòng yêu cầu gửi lại mã." });
+    }
+
+    const otpOk = await bcrypt.compare(otp, user.passwordResetOtpHash);
+    if (!otpOk) {
+      return res.status(400).send({ message: "Mã OTP không đúng" });
+    }
+
+    user.password = newPassword;
+    user.passwordResetOtpHash = undefined;
+    user.passwordResetOtpExp = undefined;
+    user.forgotPasswordToken = "";
+    user.forgotPasswordTokenExp = null;
+    await user.save();
+
+    res.json({ ok: true, message: "Đã đặt lại mật khẩu thành công" });
   } catch (e) {
     res.status(500).send({ message: String(e.message || e) });
   }

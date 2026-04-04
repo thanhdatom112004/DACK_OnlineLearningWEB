@@ -76,7 +76,7 @@ Xem chi tiết trong **[CAP-NHAT-ENROLLMENT-QUIZ.md](./CAP-NHAT-ENROLLMENT-QUIZ.
 ## Chạy dự án (hướng A: xem khóa học + giỏ đăng ký)
 
 1. **Backend** (`backend/`):
-   - Copy `backend/.env.example` → `backend/.env`, điền `MONGODB_URI` (Atlas), `JWT_SECRET`, `PORT` (mặc định 3001).
+   - Copy `backend/.env.example` → `backend/.env`, điền `MONGODB_URI` (Atlas), `JWT_SECRET`, `PORT` (mặc định 3001), và **SMTP** (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, …) nếu dùng quên mật khẩu/OTP. Kiểm tra gửi mail: `cd backend` → `npm run test:smtp`.
    - `cd backend`
    - `npm install`
    - `npm run seed:roles` (tạo role `ADMIN` / `USER`)

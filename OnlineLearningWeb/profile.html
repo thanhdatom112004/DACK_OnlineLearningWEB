@@ -96,6 +96,9 @@
 
             <h4 class="mt-3 mb-1" id="pf-username">-</h4>
             <div class="text-muted small" id="pf-email">-</div>
+            <div class="mt-2">
+              <span class="badge badge-pill d-none" id="pf-email-badge" title="Trạng thái xác thực email">-</span>
+            </div>
 
             <div class="d-flex justify-content-center flex-wrap mt-3">
               <span class="badge badge-pill badge-primary mr-2 mb-2" id="pf-role">-</span>
@@ -159,6 +162,45 @@
               </div>
               <button type="submit" class="btn btn-primary">Lưu thông tin</button>
             </form>
+          </div>
+
+          <div class="card shadow-sm border-0 p-4 mb-4" id="pf-email-verify-card">
+            <h5 class="mb-3">Xác thực email</h5>
+            <p class="text-muted small mb-3">
+              Email đăng nhập: <strong id="pf-ev-email-copy">-</strong>
+            </p>
+            <div id="pf-ev-verified" class="d-none">
+              <div class="alert alert-success mb-0 py-2">
+                <span class="fa fa-check-circle mr-1"></span> Email đã được xác thực.
+              </div>
+            </div>
+            <div id="pf-ev-pending">
+              <p class="text-muted small">
+                Bấm <strong>Gửi mã OTP</strong> để nhận mã 6 số qua email, sau đó nhập mã và bấm <strong>Xác nhận</strong>.
+              </p>
+              <div class="form-row">
+                <div class="col-sm-4 mb-2 mb-sm-0">
+                  <button type="button" class="btn btn-outline-primary btn-block btn-sm" id="pf-ev-send">
+                    <span class="fa fa-envelope-o mr-1"></span>Gửi mã OTP
+                  </button>
+                </div>
+                <div class="col-sm-4 mb-2 mb-sm-0">
+                  <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    id="pf-ev-otp"
+                    maxlength="6"
+                    inputmode="numeric"
+                    placeholder="Mã 6 số"
+                    autocomplete="one-time-code"
+                  />
+                </div>
+                <div class="col-sm-4">
+                  <button type="button" class="btn btn-primary btn-block btn-sm" id="pf-ev-confirm">Xác nhận</button>
+                </div>
+              </div>
+              <p class="small text-muted mt-2 mb-0" id="pf-ev-hint"></p>
+            </div>
           </div>
 
           <div class="card shadow-sm border-0 p-4">

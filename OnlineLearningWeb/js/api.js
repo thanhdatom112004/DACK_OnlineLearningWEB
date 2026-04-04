@@ -122,10 +122,11 @@
     formatPriceVnd: formatPriceVnd,
     formatCoursePriceDisplay: formatCoursePriceDisplay,
     validatePriceVnd: validatePriceVnd,
-    login: function (username, password) {
+    /** Đăng nhập: tham số đầu là tên đăng nhập hoặc email */
+    login: function (usernameOrEmail, password) {
       return apiFetch("/api/auth/login", {
         method: "POST",
-        body: { username: username, password: password },
+        body: { username: usernameOrEmail, password: password },
       }).then(function (data) {
         if (data && data.token) setToken(data.token);
         return data;
@@ -153,6 +154,31 @@
       return apiFetch("/api/auth/changepassword", {
         method: "POST",
         body: { oldPassword: oldPassword, newPassword: newPassword },
+      });
+    },
+    /** Gửi OTP quên mật khẩu — body.email có thể là email hoặc tên đăng nhập */
+    forgotPassword: function (emailOrUsername) {
+      return apiFetch("/api/auth/forgotpassword", {
+        method: "POST",
+        body: { email: emailOrUsername },
+      });
+    },
+    /** Đặt lại mật khẩu — tham số đầu: email hoặc username (trùng bước gửi OTP) */
+    resetPassword: function (emailOrUsername, otp, newPassword) {
+      return apiFetch("/api/auth/resetpassword", {
+        method: "POST",
+        body: { email: emailOrUsername, otp: String(otp), newPassword: newPassword },
+      });
+    },
+    /** Đã đăng nhập: gửi OTP xác thực email */
+    verifyEmailSendOtp: function () {
+      return apiFetch("/api/auth/verify-email/send-otp", { method: "POST", body: {} });
+    },
+    /** Đã đăng nhập: xác nhận OTP email */
+    verifyEmailConfirm: function (otp) {
+      return apiFetch("/api/auth/verify-email/confirm", {
+        method: "POST",
+        body: { otp: String(otp) },
       });
     },
     courses: function () {

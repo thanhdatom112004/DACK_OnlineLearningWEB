@@ -19,6 +19,7 @@ module.exports = {
       fullName,
       avatarUrl,
       status,
+      emailVerified: false,
     });
 
     await newItem.save({ session });
@@ -37,16 +38,6 @@ module.exports = {
 
   FindByEmail: async function (email) {
     return await userModel.findOne({ email, isDeleted: false });
-  },
-
-  FindByToken: async function (token) {
-    const user = await userModel.findOne({
-      forgotPasswordToken: token,
-      isDeleted: false,
-    });
-
-    if (user && user.forgotPasswordTokenExp > Date.now()) return user;
-    return undefined;
   },
 
   getAllUser: async function () {

@@ -112,6 +112,32 @@
     if (upBtn) upBtn.disabled = true;
 
     applyAvatar(user.avatarUrl);
+
+    var emailVerified = user.emailVerified === true;
+    var badge = document.getElementById("pf-email-badge");
+    if (badge) {
+      badge.classList.remove("d-none");
+      badge.classList.remove("badge-success", "badge-warning");
+      badge.classList.add(emailVerified ? "badge-success" : "badge-warning");
+      badge.textContent = emailVerified ? "Email đã xác thực" : "Chưa xác thực email";
+    }
+    var evEmail = document.getElementById("pf-ev-email-copy");
+    if (evEmail) evEmail.textContent = user.email || "-";
+    var evOk = document.getElementById("pf-ev-verified");
+    var evPen = document.getElementById("pf-ev-pending");
+    if (evOk && evPen) {
+      if (emailVerified) {
+        evOk.classList.remove("d-none");
+        evPen.classList.add("d-none");
+      } else {
+        evOk.classList.add("d-none");
+        evPen.classList.remove("d-none");
+      }
+    }
+    var hint = document.getElementById("pf-ev-hint");
+    if (hint) hint.textContent = "";
+    var otpIn = document.getElementById("pf-ev-otp");
+    if (otpIn) otpIn.value = "";
   }
 
   if (!window.OLApi || !OLApi.getToken()) {
@@ -244,6 +270,59 @@
         })
         .catch(function (err) {
           showAlert("danger", err.message || "Đổi mật khẩu thất bại.");
+        });
+    });
+  }
+
+  var btnEvSend = document.getElementById("pf-ev-send");
+  var btnEvConfirm = document.getElementById("pf-ev-confirm");
+  var pfEvHint = document.getElementById("pf-ev-hint");
+
+  function setEvHint(msg) {
+    if (pfEvHint) pfEvHint.textContent = msg || "";
+  }
+
+  if (btnEvSend) {
+    btnEvSend.addEventListener("click", function () {
+      btnEvSend.disabled = true;
+      setEvHint("");
+      OLApi.verifyEmailSendOtp()
+        .then(function (data) {
+          setEvHint(data.message || "Đã gửi mã. Kiểm tra email.");
+          showAlert("success", data.message || "Đã gửi mã OTP.");
+        })
+        .catch(function (err) {
+          showAlert("danger", err.message || "Không gửi được mã OTP.");
+        })
+        .finally(function () {
+          btnEvSend.disabled = false;
+        });
+    });
+  }
+
+  if (btnEvConfirm) {
+    btnEvConfirm.addEventListener("click", function () {
+      var otpEl = document.getElementById("pf-ev-otp");
+      var otp = otpEl ? otpEl.value.trim() : "";
+      if (!/^\d{6}$/.test(otp)) {
+        showAlert("warning", "Nhập đúng mã OTP 6 chữ số.");
+        return;
+      }
+      btnEvConfirm.disabled = true;
+      OLApi.verifyEmailConfirm(otp)
+        .then(function (data) {
+          showAlert("success", data.message || "Đã xác thực email.");
+          if (data.user) {
+            fillUser(data.user);
+          } else {
+            return OLApi.me().then(fillUser);
+          }
+        })
+        .catch(function (err) {
+          showAlert("danger", err.message || "Xác thực thất bại.");
+        })
+        .finally(function () {
+          btnEvConfirm.disabled = false;
         });
     });
   }

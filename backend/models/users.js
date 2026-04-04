@@ -52,6 +52,23 @@ const userSchema = new mongoose.Schema(
     forgotPasswordTokenExp: {
       type: Date,
     },
+    /** Băm bcrypt của mã OTP đặt lại mật khẩu (6 chữ số) */
+    passwordResetOtpHash: {
+      type: String,
+    },
+    passwordResetOtpExp: {
+      type: Date,
+    },
+    /** false = chưa xác thực email (tài khoản mới); thiếu field = coi như đã xác thực (dữ liệu cũ) */
+    emailVerified: {
+      type: Boolean,
+    },
+    emailVerifyOtpHash: {
+      type: String,
+    },
+    emailVerifyOtpExp: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );
