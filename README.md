@@ -1,5 +1,20 @@
 # DACK_OnlineLearningWEB
 
+## Cập nhật gần nhất (04/04/2026)
+
+- **MongoDB / khóa học**
+  - Trong `MONGODB_URI`, đặt tên database trong path (ví dụ `.../studylab_online_learning?...`). Khi backend khởi động sẽ chạy **`migrateCourseCategories`**: chuẩn hóa trường `category` trên khóa học sang ObjectId ref, populate tên danh mục khi đọc API.
+  - Xóa danh mục: `DELETE /api/categories/:id` gỡ ref trên các khóa học (`category: null`).
+  - Ảnh khóa học (admin): upload file **`POST /api/courses/upload-image`** (multipart, field `file`), file lưu tại **`/uploads/courses/...`** — tránh lưu data URL base64 dài trong DB.
+- **Giỏ hàng & đơn thanh toán**: mỗi dòng lưu **snapshot giá** (`unitPriceVnd`, số lượng) để khớp giá tại thời điểm thêm giỏ / tạo đơn.
+- **Đăng nhập & admin**: API login và `GET /api/auth/me` trả thêm **`roleName`** (chuỗi). `login.html` sau khi đăng nhập gọi `OLApi.me()` để redirect: **ADMIN** → `admin-dashboard.html`, **USER** → `course.html`.
+- **Hồ sơ (`profile.html` / `js/profile-page.js`)**
+  - `POST /api/auth/profile/avatar` — tải ảnh đại diện (field `file`).
+  - `PUT /api/auth/profile` — cập nhật `username`, `fullName`, `avatarUrl` (để trống `avatarUrl` = về ảnh mặc định theo backend).
+  - Chọn file ảnh: xóa nội dung ô **URL ảnh** để tránh nhầm với URL cũ. Nút **Lưu thông tin**: nếu có file đã chọn thì **upload avatar trước**, sau đó cập nhật tên (không gửi `avatarUrl` rỗng sau bước upload — tránh reset ảnh).
+
+---
+
 ## Cập nhật hôm nay (01/04/2026)
 
 - **Chat hỗ trợ (admin)**: Socket.io trên server, model tin nhắn, API/route messages, handler chat; trang `admin-chat` + script tương ứng, liên kết từ dashboard admin; phục vụ upload/static cho chat (multer, thư mục upload).
@@ -76,19 +91,21 @@ Xem chi tiết trong **[CAP-NHAT-ENROLLMENT-QUIZ.md](./CAP-NHAT-ENROLLMENT-QUIZ.
 ## Chạy dự án (hướng A: xem khóa học + giỏ đăng ký)
 
 1. **Backend** (`backend/`):
-   - Copy `backend/.env.example` → `backend/.env`, điền `MONGODB_URI` (Atlas), `JWT_SECRET`, `PORT` (mặc định 3001), và **SMTP** (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, …) nếu dùng quên mật khẩu/OTP. Kiểm tra gửi mail: `cd backend` → `npm run test:smtp`.
+   - Copy `backend/.env.example` → `backend/.env`, điền `MONGODB_URI` (trong URI nhớ chỉ định **tên database** trong path, ví dụ `.../ten_database?...`), `JWT_SECRET`, `PORT` (mặc định 3001), và **SMTP** (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, …) nếu dùng quên mật khẩu/OTP. Kiểm tra gửi mail: `cd backend` → `npm run test:smtp`.
    - `cd backend`
    - `npm install`
    - `npm run seed:roles` (tạo role `ADMIN` / `USER`)
+   - Tạo user admin trong DB (role `ADMIN`) hoặc gán role phù hợp — xem script/Compass theo môi trường.
    - `npm run dev` hoặc `npm start`
 
 2. **Mở web**: trình duyệt vào **`http://localhost:3001/`** (không mở file HTML trực tiếp bằng `file://` vì API cùng origin).
 
 3. **Luồng dùng**:
    - `index.html` — đăng ký (`POST /api/auth/register`)
-   - `login.html` — đăng nhập (lưu token + cookie)
+   - `login.html` — đăng nhập (lưu token + cookie; redirect theo `roleName`)
    - `course.html` — danh sách khóa học từ MongoDB (`GET /api/courses`), nút **Thêm vào giỏ**
-   - `cart.html` — giỏ đăng ký: **Xóa** (`POST /api/carts/remove`), **-1** (`POST /api/carts/reduce`)
+   - `cart.html` — giỏ đăng ký: **Xóa** (`POST /api/carts/remove`), thanh toán chuyển sang `payment.html`
+   - `profile.html` — hồ sơ, đổi mật khẩu, xác thực email, avatar (URL hoặc upload file)
 
 4. **Dữ liệu admin**: tạo khóa học qua API `POST /api/courses` (cần user `ADMIN` + token), hoặc Compass/Atlas insert thủ công nếu cần demo.
 
@@ -97,6 +114,25 @@ Xem chi tiết trong **[CAP-NHAT-ENROLLMENT-QUIZ.md](./CAP-NHAT-ENROLLMENT-QUIZ.
 ## Frontend
 
 Thư mục `OnlineLearningWeb/` là template HTML tĩnh; đã nối:
-- `js/api.js` — gọi `/api/*` cùng origin, `credentials: 'include'`
-- `js/course-list.js`, `js/cart-page.js`, `js/index-register.js`, `js/login-page.js`
+- `js/api.js` — gọi `/api/*` cùng origin, `credentials: 'include'` (JSON body; riêng upload dùng `FormData`)
+- `js/course-list.js`, `js/cart-page.js`, `js/index-register.js`, `js/login-page.js`, `js/profile-page.js`, `js/auth-nav.js`, …
+
+### API gợi ý (tóm tắt)
+
+| Nhóm | Method | Đường dẫn | Ghi chú |
+|------|--------|-----------|---------|
+| Auth | POST | `/api/auth/register`, `/api/auth/login`, `/api/auth/logout` | Login trả `token` + user có `roleName` |
+| Auth | GET | `/api/auth/me` | User hiện tại |
+| Auth | PUT | `/api/auth/profile` | `username`, `fullName`, `avatarUrl` |
+| Auth | POST | `/api/auth/profile/avatar` | multipart `file` — ảnh đại diện |
+| Categories | CRUD | `/api/categories` | |
+| Courses | GET/POST | `/api/courses` | POST cần ADMIN |
+| Courses | POST | `/api/courses/upload-image` | ADMIN, multipart `file` |
+| Carts | GET/POST | `/api/carts`, `/api/carts/add`, `/api/carts/remove`, … | |
+| Payment orders | | `/api/payment-orders` | Tạo đơn, admin xác nhận |
+| Enrollments | | `/api/enrollments` | |
+| Lesson quizzes | | `/api/lesson-quizzes` | |
+| Messages | | `/api/messages` | Chat hỗ trợ |
+| Users / Roles | | `/api/users`, `/api/roles` | |
+| Health | GET | `/api/health` | |
 
