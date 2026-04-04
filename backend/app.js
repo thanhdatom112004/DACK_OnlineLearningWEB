@@ -23,7 +23,15 @@ const mongoUri = requireMongoUri();
 
 mongoose
   .connect(mongoUri)
-  .then(() => console.log("MongoDB connected"))
+  .then(async () => {
+    console.log("MongoDB connected");
+    try {
+      await require("./utils/migrateCourseCategories")();
+      console.log("Course category migration OK");
+    } catch (err) {
+      console.error("migrateCourseCategories:", err);
+    }
+  })
   .catch((err) => {
     console.error("MongoDB connect failed:", err);
     process.exit(1);

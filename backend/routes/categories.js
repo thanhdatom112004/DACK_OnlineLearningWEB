@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const categoryModel = require("../models/categories");
+const courseModel = require("../models/courses");
 const { checkLogin, checkRole } = require("../middleware/authHandler");
 
 // Public: list categories
@@ -39,12 +40,14 @@ router.put("/:id", checkLogin, checkRole("ADMIN"), async function (req, res, nex
 
 router.delete("/:id", checkLogin, checkRole("ADMIN"), async function (req, res, next) {
   try {
+    const id = req.params.id;
     const updated = await categoryModel.findByIdAndUpdate(
-      req.params.id,
+      id,
       { isDeleted: true },
       { new: true }
     );
     if (!updated) return res.status(404).send({ message: "id not found" });
+    await courseModel.updateMany({ category: id }, { $set: { category: null } });
     res.send(updated);
   } catch (e) {
     res.status(400).send({ message: String(e.message || e) });

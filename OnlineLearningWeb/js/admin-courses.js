@@ -7,7 +7,7 @@
   var imagePreviewGroup = document.getElementById("course-image-preview-group");
   var videoList = document.getElementById("video-list");
   var addVideoBtn = document.getElementById("add-video-btn");
-  var uploadedImageDataUrl = "";
+  var uploadedImageUrl = "";
 
   function show(type, msg) {
     if (!alertBox) return;
@@ -94,10 +94,11 @@
   function resetForm() {
     form.reset();
     document.getElementById("course-id").value = "";
-    uploadedImageDataUrl = "";
+    uploadedImageUrl = "";
     if (imageFileInput) imageFileInput.value = "";
     setPreview("");
     if (videoList) videoList.innerHTML = "";
+    loadCategories("");
   }
 
   function createVideoItem(video) {
@@ -208,14 +209,25 @@
     return row;
   }
 
+  function categoryIdForForm(c) {
+    if (!c || !c.category) return "";
+    if (typeof c.category === "object" && c.category._id) return String(c.category._id);
+    return String(c.category || "");
+  }
+
+  function categoryNameForTable(c) {
+    if (!c || !c.category) return "";
+    if (typeof c.category === "object" && c.category.name) return c.category.name;
+    return "";
+  }
+
   function fillForm(c) {
     document.getElementById("course-id").value = c._id || "";
     document.getElementById("course-title").value = c.title || "";
     document.getElementById("course-price").value = c.price || 0;
-    document.getElementById("course-category").value = c.category || "";
     document.getElementById("course-description").value = c.description || "";
     document.getElementById("course-images").value = c.images || "";
-    uploadedImageDataUrl = "";
+    uploadedImageUrl = "";
     if (imageFileInput) imageFileInput.value = "";
     setPreview(c.images || "");
     if (videoList) {
@@ -225,6 +237,7 @@
       });
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
+    loadCategories(categoryIdForForm(c));
   }
 
   function renderCategoryOptions(items, selectedValue) {
@@ -233,9 +246,9 @@
     select.innerHTML = '<option value="">-- Chọn category --</option>';
     (items || []).forEach(function (cat) {
       var op = document.createElement("option");
-      op.value = cat.name;
+      op.value = String(cat._id);
       op.textContent = cat.name;
-      if (selectedValue && String(selectedValue) === String(cat.name)) {
+      if (selectedValue && String(selectedValue) === String(cat._id)) {
         op.selected = true;
       }
       select.appendChild(op);
@@ -268,7 +281,7 @@
             "</td><td>" +
             esc(OLApi.formatPriceVnd(c.price || 0)) +
             "</td><td>" +
-            esc(c.category || "") +
+            esc(categoryNameForTable(c)) +
             '</td><td><button class="btn btn-sm btn-outline-success mr-1 btn-view">Xem</button><button class="btn btn-sm btn-outline-primary mr-1 btn-edit">Sửa</button><button class="btn btn-sm btn-outline-danger btn-del">Xóa</button></td>';
           tr.querySelector(".btn-view").addEventListener("click", function () {
             window.location.href = "course-watch.html?id=" + encodeURIComponent(c._id);
@@ -317,9 +330,9 @@
       var payload = {
         title: data.title,
         price: data.price,
-        category: data.category,
+        category: data.category || "",
         description: data.description,
-        images: uploadedImageDataUrl || data.images,
+        images: uploadedImageUrl || data.images,
         videos: data.videos,
       };
 
@@ -341,27 +354,33 @@
     imageFileInput.addEventListener("change", function (e) {
       var file = e.target.files && e.target.files[0];
       if (!file) {
-        uploadedImageDataUrl = "";
+        uploadedImageUrl = "";
         setPreview(document.getElementById("course-images").value.trim());
         return;
       }
-      var reader = new FileReader();
-      reader.onload = function (ev) {
-        uploadedImageDataUrl = ev.target && ev.target.result ? String(ev.target.result) : "";
-        setPreview(uploadedImageDataUrl);
-      };
-      reader.onerror = function () {
-        uploadedImageDataUrl = "";
-        show("danger", "Không đọc được file ảnh.");
-      };
-      reader.readAsDataURL(file);
+      var fd = new FormData();
+      fd.append("file", file);
+      show("info", "Đang tải ảnh lên server...");
+      OLApi.courseImageUpload(fd)
+        .then(function (res) {
+          uploadedImageUrl = res && res.imageUrl ? String(res.imageUrl) : "";
+          document.getElementById("course-images").value = uploadedImageUrl;
+          setPreview(uploadedImageUrl);
+          show("success", "Đã tải ảnh lên thành công.");
+        })
+        .catch(function (err) {
+          uploadedImageUrl = "";
+          if (imageFileInput) imageFileInput.value = "";
+          setPreview(document.getElementById("course-images").value.trim());
+          show("danger", err.message || "Không tải được file ảnh.");
+        });
     });
   }
 
   var imageUrlInput = document.getElementById("course-images");
   if (imageUrlInput) {
     imageUrlInput.addEventListener("input", function () {
-      if (!uploadedImageDataUrl) {
+      if (!uploadedImageUrl) {
         setPreview(imageUrlInput.value.trim());
       }
     });

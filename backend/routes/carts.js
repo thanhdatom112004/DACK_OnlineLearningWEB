@@ -16,6 +16,13 @@ async function getOrCreateCart(userId) {
   return cart;
 }
 
+function unitPriceFromLine(item, course) {
+  if (item.unitPriceVnd != null && Number.isFinite(Number(item.unitPriceVnd))) {
+    return Math.max(0, Math.round(Number(item.unitPriceVnd)));
+  }
+  return Math.max(0, Math.round(Number(course && course.price) || 0));
+}
+
 // GET /api/carts/get-cart
 router.get("/get-cart", checkLogin, async function (req, res, next) {
   const cart = await getOrCreateCart(req.userId);
@@ -29,6 +36,9 @@ router.post("/add-cart", checkLogin, async function (req, res, next) {
   const courseExists = await inventoryModel.findOne({ course: product });
   if (!courseExists) return res.status(404).send({ message: "product khong ton tai" });
 
+  const course = await courseModel.findOne({ _id: product, isDeleted: false });
+  const unitSnap = course ? Math.max(0, Math.round(Number(course.price) || 0)) : 0;
+
   const cart = await getOrCreateCart(req.userId);
 
   const idx = cart.cartItems.findIndex(
@@ -39,6 +49,7 @@ router.post("/add-cart", checkLogin, async function (req, res, next) {
     cart.cartItems.push({
       course: product,
       quantity: Number(quantity) || 1,
+      unitPriceVnd: unitSnap,
     });
   } else {
     cart.cartItems[idx].quantity += Number(quantity) || 1;
@@ -55,6 +66,9 @@ router.post("/add-one", checkLogin, async function (req, res, next) {
   const courseExists = await inventoryModel.findOne({ course: product });
   if (!courseExists) return res.status(404).send({ message: "product khong ton tai" });
 
+  const course = await courseModel.findOne({ _id: product, isDeleted: false });
+  const unitSnap = course ? Math.max(0, Math.round(Number(course.price) || 0)) : 0;
+
   const cart = await getOrCreateCart(req.userId);
 
   const idx = cart.cartItems.findIndex(
@@ -65,6 +79,7 @@ router.post("/add-one", checkLogin, async function (req, res, next) {
     cart.cartItems.push({
       course: product,
       quantity: 1,
+      unitPriceVnd: unitSnap,
     });
   } else {
     cart.cartItems[idx].quantity += 1;
@@ -131,8 +146,8 @@ router.post("/checkout", checkLogin, async function (req, res, next) {
       }
 
       const qty = Math.max(1, Number(item.quantity) || 1);
-      const price = Number(course.price) || 0;
-      const subtotal = price * qty;
+      const unit = unitPriceFromLine(item, course);
+      const subtotal = unit * qty;
       paymentTotal += subtotal;
 
       const existing = await enrollmentModel.findOne({

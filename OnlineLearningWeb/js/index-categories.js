@@ -25,6 +25,12 @@
     return String(str || "").trim().toLowerCase();
   }
 
+  function categoryName(c) {
+    if (!c || !c.category) return "";
+    if (typeof c.category === "object" && c.category.name) return String(c.category.name).trim();
+    return String(c.category).trim();
+  }
+
   Promise.all([OLApi.categories(), OLApi.courses()])
     .then(function (arr) {
       var categories = arr[0] || [];
@@ -32,7 +38,7 @@
 
       var byCategory = {};
       courses.forEach(function (c) {
-        var key = normalize(c.category);
+        var key = normalize(categoryName(c));
         if (!key) return;
         if (!byCategory[key]) byCategory[key] = [];
         byCategory[key].push(c);

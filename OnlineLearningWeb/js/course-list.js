@@ -31,6 +31,12 @@
     return d.innerHTML;
   }
 
+  function categoryName(c) {
+    if (!c || !c.category) return "";
+    if (typeof c.category === "object" && c.category.name) return String(c.category.name).trim();
+    return String(c.category).trim();
+  }
+
   function normalizeCourseImage(c) {
     var raw = c && c.images;
     if (typeof raw === "string" && raw.trim()) return raw.trim();
@@ -68,7 +74,7 @@
       map[String(cat.name)] = true;
     });
     (courses || []).forEach(function (c) {
-      var name = c && c.category ? String(c.category).trim() : "";
+      var name = categoryName(c);
       if (name) map[name] = true;
     });
     var names = Object.keys(map).sort(function (a, b) {
@@ -111,7 +117,7 @@
       var filtered = (list || []).filter(function (c) {
         var keys = Object.keys(selectedCategories);
         if (!keys.length) return true;
-        var cat = c && c.category ? String(c.category) : "";
+        var cat = categoryName(c);
         return !!selectedCategories[cat];
       });
 
@@ -122,7 +128,7 @@
       }
       filtered.forEach(function (c, i) {
         var img = normalizeCourseImage(c) || imgs[i % imgs.length];
-        var cat = c.category || "Khóa học";
+        var cat = categoryName(c) || "Khóa học";
         var price =
           typeof c.price === "number" && !isNaN(c.price)
             ? c.price

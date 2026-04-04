@@ -8,6 +8,13 @@ const courseModel = require("../models/courses");
 const inventoryModel = require("../models/inventories");
 const enrollmentModel = require("../models/enrollments");
 
+function unitPriceFromCartLine(line, course) {
+  if (line.unitPriceVnd != null && Number.isFinite(Number(line.unitPriceVnd))) {
+    return Math.max(0, Math.round(Number(line.unitPriceVnd)));
+  }
+  return Math.max(0, Math.round(Number(course.price) || 0));
+}
+
 async function buildSnapshotFromCart(userId) {
   const cart = await cartModel.findOne({ user: userId });
   if (!cart || !cart.cartItems || !cart.cartItems.length) {
@@ -20,13 +27,16 @@ async function buildSnapshotFromCart(userId) {
     if (!course) {
       throw new Error("Khóa học không tồn tại hoặc đã gỡ");
     }
-    const price = Number(course.price) || 0;
+    const qty = Math.max(1, Number(line.quantity) || 1);
+    const unit = unitPriceFromCartLine(line, course);
+    const lineTotal = unit * qty;
     items.push({
       course: course._id,
       title: course.title,
-      price,
+      price: unit,
+      quantity: qty,
     });
-    total += price;
+    total += lineTotal;
   }
   return { items, total };
 }
@@ -92,9 +102,9 @@ router.post("/:id/confirm", checkLogin, checkRole("ADMIN"), async function (req,
       if (!course) {
         continue;
       }
-      const price = Number(item.price) || Number(course.price) || 0;
-      const qty = 1;
-      const subtotal = price * qty;
+      const qty = Math.max(1, Number(item.quantity) || 1);
+      const unit = Number(item.price) || Number(course.price) || 0;
+      const subtotal = unit * qty;
 
       const existing = await enrollmentModel.findOne({
         user: order.user,

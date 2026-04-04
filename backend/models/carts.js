@@ -12,6 +12,12 @@ const cartItemSchema = mongoose.Schema(
       min: 1,
       default: 1,
     },
+    /** Giá đơn vị (VND) tại thời điểm thêm vào giỏ — snapshot */
+    unitPriceVnd: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
   },
   { _id: false }
 );

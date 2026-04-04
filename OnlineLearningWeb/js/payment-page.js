@@ -47,8 +47,14 @@
       cartItems.forEach(function (line) {
         var c = courseMap[String(line.course)];
         if (!c) return;
-        var price = typeof c.price === "number" ? c.price : Number(c.price) || 0;
-        total += price;
+        var qty = Math.max(1, Number(line.quantity) || 1);
+        var unit =
+          line.unitPriceVnd != null && Number.isFinite(Number(line.unitPriceVnd))
+            ? Math.max(0, Math.round(Number(line.unitPriceVnd)))
+            : typeof c.price === "number"
+              ? c.price
+              : Number(c.price) || 0;
+        total += unit * qty;
       });
       if (totalSpan) totalSpan.textContent = OLApi.formatPriceVnd(total);
       if (qrImage) {

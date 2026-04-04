@@ -9,7 +9,11 @@ router.get("/mine", checkLogin, async function (req, res, next) {
   try {
     const list = await enrollmentModel
       .find({ user: req.userId })
-      .populate("course", "title price category images slug description")
+      .populate({
+        path: "course",
+        select: "title price category images slug description",
+        populate: { path: "category", select: "name image" },
+      })
       .sort({ updatedAt: -1 });
     res.send(list);
   } catch (e) {

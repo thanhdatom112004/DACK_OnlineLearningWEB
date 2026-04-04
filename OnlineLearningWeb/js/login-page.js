@@ -15,11 +15,17 @@
     var p = document.getElementById("login-password").value;
     OLApi.login(u, p)
       .then(function (data) {
+        if (!data || !data.token) {
+          throw new Error("Phản hồi đăng nhập thiếu token.");
+        }
+        // Token đã lưu — hỏi /me để lấy role chuẩn (tránh body login thiếu populate).
+        return OLApi.me();
+      })
+      .then(function (me) {
         var roleName =
-          data &&
-          data.user &&
-          data.user.role &&
-          (typeof data.user.role === "object" ? data.user.role.name : data.user.role);
+          (me && me.roleName) ||
+          (me && me.role && (typeof me.role === "object" ? me.role.name : me.role)) ||
+          "";
         var isAdmin = String(roleName || "").toUpperCase() === "ADMIN";
         showAlert(
           "success",

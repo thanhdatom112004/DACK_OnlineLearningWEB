@@ -86,9 +86,9 @@
         .then(function (user) {
           var username = user && user.username ? user.username : "Tài khoản";
           var roleName =
-            user && user.role
-              ? (typeof user.role === "object" ? user.role.name : user.role)
-              : "";
+            (user && user.roleName) ||
+            (user && user.role && (typeof user.role === "object" ? user.role.name : user.role)) ||
+            "";
           navLists.forEach(function (nav) {
             setUserNav(nav, username, roleName);
           });

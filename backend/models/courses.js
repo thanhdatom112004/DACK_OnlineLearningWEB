@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { DEFAULT_COURSE_IMAGE } = require("../utils/courseImageUrl");
 
 const videoItemSchema = new mongoose.Schema(
   {
@@ -37,14 +38,16 @@ const courseSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    /** Tham chiếu danh mục (populate tên khi trả API) */
     category: {
-      type: String,
-      default: "",
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "category",
+      default: null,
     },
     images: {
       type: String,
-      default:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8N7qdG-B9FW47yJaKEKCDpidao3fC1raDbpgldxW-Vr47N8vOGMdT6NrFib3y_QGyLZICFQdatPcNA2TDKw&s&ec=121516180",
+      default: DEFAULT_COURSE_IMAGE,
+      maxlength: 2048,
     },
     videos: {
       type: [videoItemSchema],

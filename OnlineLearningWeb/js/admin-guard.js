@@ -29,7 +29,10 @@
 
   OLApi.me()
     .then(function (u) {
-      var role = u && u.role ? (typeof u.role === "object" ? u.role.name : u.role) : "";
+      var role =
+        (u && u.roleName) ||
+        (u && u.role && (typeof u.role === "object" ? u.role.name : u.role)) ||
+        "";
       if (String(role || "").toUpperCase() !== "ADMIN") {
         showAlert("Bạn không có quyền truy cập trang quản trị.");
         setTimeout(function () {

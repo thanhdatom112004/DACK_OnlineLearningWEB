@@ -317,11 +317,13 @@
       .me()
       .then(function (me) {
         var role =
-          me && me.role
+          (me && me.roleName) ||
+          (me && me.role
             ? typeof me.role === "object"
               ? me.role.name
               : me.role
-            : "";
+            : "") ||
+          "";
         if (String(role).toUpperCase() === "ADMIN") return;
 
         myId = me && me._id ? String(me._id) : "";

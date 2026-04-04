@@ -84,7 +84,7 @@
   }
 
   function fillUser(user) {
-    var roleValue = user.role;
+    var roleValue = user.roleName || user.role;
     if (roleValue && typeof roleValue === "object") {
       roleValue = roleValue.name || roleValue._id || "-";
     }
@@ -187,6 +187,8 @@
         img.src = pendingBlobUrl;
       }
       if (uploadBtn) uploadBtn.disabled = false;
+      var avUrl = document.getElementById("pf-avatar-url");
+      if (avUrl) avUrl.value = "";
     });
   }
 
@@ -223,26 +225,48 @@
   if (profileForm) {
     profileForm.addEventListener("submit", function (e) {
       e.preventDefault();
-      var username = document.getElementById("pf-username-input");
-      var fullName = document.getElementById("pf-fullname");
-      var avatarUrl = document.getElementById("pf-avatar-url");
-      var payload = {
-        username: username ? username.value.trim() : "",
-        fullName: fullName ? fullName.value.trim() : "",
-        avatarUrl: avatarUrl ? avatarUrl.value.trim() : "",
-      };
-      if (!payload.username) {
+      var usernameEl = document.getElementById("pf-username-input");
+      var fullNameEl = document.getElementById("pf-fullname");
+      var avatarUrlEl = document.getElementById("pf-avatar-url");
+      var username = usernameEl ? usernameEl.value.trim() : "";
+      var fullName = fullNameEl ? fullNameEl.value.trim() : "";
+      if (!username) {
         showAlert("danger", "Tên đăng nhập không được để trống.");
         return;
       }
-      OLApi.profileUpdate(payload)
-        .then(function (user) {
-          showAlert("success", "Đã cập nhật thông tin.");
-          fillUser(user);
+      var saveBtn = profileForm.querySelector('button[type="submit"]');
+      var f = fileInput && fileInput.files && fileInput.files[0];
+      function done(user) {
+        showAlert(
+          "success",
+          f ? "Đã lưu thông tin và ảnh đại diện." : "Đã cập nhật thông tin."
+        );
+        fillUser(user);
+        if (saveBtn) saveBtn.disabled = false;
+      }
+      function fail(err) {
+        showAlert("danger", err.message || "Không lưu được.");
+        if (saveBtn) saveBtn.disabled = false;
+      }
+      if (saveBtn) saveBtn.disabled = true;
+      if (f) {
+        var fd = new FormData();
+        fd.append("file", f);
+        OLApi.profileAvatarUpload(fd)
+          .then(function () {
+            return OLApi.profileUpdate({ username: username, fullName: fullName });
+          })
+          .then(done)
+          .catch(fail);
+      } else {
+        OLApi.profileUpdate({
+          username: username,
+          fullName: fullName,
+          avatarUrl: avatarUrlEl ? avatarUrlEl.value.trim() : "",
         })
-        .catch(function (err) {
-          showAlert("danger", err.message || "Không lưu được.");
-        });
+          .then(done)
+          .catch(fail);
+      }
     });
   }
 

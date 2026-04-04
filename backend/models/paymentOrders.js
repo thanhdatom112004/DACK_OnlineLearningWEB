@@ -16,6 +16,12 @@ const paymentOrderItemSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    /** Số lượng (snapshot từ giỏ) — bản cũ có thể thiếu → coi như 1 */
+    quantity: {
+      type: Number,
+      min: 1,
+      default: 1,
+    },
   },
   { _id: false }
 );

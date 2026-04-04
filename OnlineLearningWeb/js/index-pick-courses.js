@@ -84,7 +84,12 @@
       }
       list.forEach(function (c, i) {
         var img = normalizeCourseImage(c) || imgs[i % imgs.length];
-        var cat = c.category || "Khóa học";
+        var cat = "Khóa học";
+        if (c.category && typeof c.category === "object" && c.category.name) {
+          cat = c.category.name;
+        } else if (typeof c.category === "string" && String(c.category).trim()) {
+          cat = String(c.category).trim();
+        }
         var price = typeof c.price === "number" ? c.price : Number(c.price) || 0;
         var id = c._id;
         var free = isFree(c);

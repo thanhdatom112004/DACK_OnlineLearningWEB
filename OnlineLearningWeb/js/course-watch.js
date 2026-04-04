@@ -24,10 +24,11 @@
       .then(function (arr) {
         var me = arr[0] || {};
         var list = arr[1] || [];
-        var roleName =
-          me && me.role && typeof me.role === "object"
-            ? String(me.role.name || "").toUpperCase()
-            : String((me && me.role) || "").toUpperCase();
+        var roleName = String(
+          (me && me.roleName) ||
+            (me && me.role && typeof me.role === "object" ? me.role.name : me && me.role) ||
+            ""
+        ).toUpperCase();
         if (roleName === "ADMIN") return true;
         return list.some(function (en) {
           var cid = en && en.course && en.course._id ? String(en.course._id) : "";

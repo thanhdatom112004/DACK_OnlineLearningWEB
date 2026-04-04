@@ -29,6 +29,31 @@ function maskEmailHint(email) {
   return e[0] + "***" + e.slice(at);
 }
 
+/** Đảm bảo role có { name } (populate lỗi / user tạo tay trong DB vẫn có tên role cho frontend). */
+async function ensureRolePopulated(user) {
+  if (!user) return user;
+  const lean = user.toObject ? user.toObject() : user;
+  const r = lean.role;
+  if (r && typeof r === "object" && r.name) return user;
+  const rid = r && r._id ? r._id : r;
+  if (!rid) return user;
+  const roleDoc = await roleModel.findOne({ _id: rid, isDeleted: false }).select("name").lean();
+  if (roleDoc) {
+    user.role = { _id: roleDoc._id, name: roleDoc.name };
+  }
+  return user;
+}
+
+function withRoleName(rest) {
+  if (!rest || typeof rest !== "object") return rest;
+  const name =
+    rest.role && typeof rest.role === "object" && rest.role.name
+      ? String(rest.role.name)
+      : "";
+  rest.roleName = name;
+  return rest;
+}
+
 // POST /api/auth/register
 router.post("/register", userPostValidation, validateResult, async function (req, res, next) {
   try {
@@ -55,8 +80,9 @@ router.post("/register", userPostValidation, validateResult, async function (req
       undefined
     );
 
-    const populatedUser = await userController.FindByID(newUser._id);
-    res.send(safeUserDoc(populatedUser));
+    let populatedUser = await userController.FindByID(newUser._id);
+    populatedUser = await ensureRolePopulated(populatedUser);
+    res.send(withRoleName(safeUserDoc(populatedUser)));
   } catch (e) {
     const msg = String(e.message || e);
     if (msg.indexOf("E11000") !== -1 || msg.indexOf("duplicate key") !== -1) {
@@ -130,8 +156,9 @@ router.post("/login", async function (req, res, next) {
       httpOnly: true,
       maxAge: 60 * 60 * 1000,
     });
-    const populatedUser = await userController.FindByID(getUser._id);
-    res.send({ token, user: safeUserDoc(populatedUser) });
+    let populatedUser = await userController.FindByID(getUser._id);
+    populatedUser = await ensureRolePopulated(populatedUser);
+    res.send({ token, user: withRoleName(safeUserDoc(populatedUser)) });
   } catch (e) {
     res.status(500).send({ message: String(e.message || e) });
   }
@@ -158,7 +185,8 @@ function safeUserDoc(user) {
 router.get("/me", checkLogin, async function (req, res, next) {
   let user = await userController.FindByID(req.userId);
   if (!user) return res.status(404).send({ message: "user not found" });
-  res.send(safeUserDoc(user));
+  user = await ensureRolePopulated(user);
+  res.send(withRoleName(safeUserDoc(user)));
 });
 
 // PUT /api/auth/profile — cập nhật thông tin (không cho đổi email)

@@ -187,6 +187,9 @@
     courseCreate: function (body) {
       return apiFetch("/api/courses", { method: "POST", body: body });
     },
+    courseImageUpload: function (formData) {
+      return apiFetch("/api/courses/upload-image", { method: "POST", body: formData });
+    },
     courseUpdate: function (id, body) {
       return apiFetch("/api/courses/" + encodeURIComponent(id), {
         method: "PUT",

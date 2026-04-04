@@ -29,7 +29,7 @@
   function load() {
     if (!OLApi.getToken()) {
       tbody.innerHTML =
-        '<tr><td colspan="5">Chưa đăng nhập. <a href="login.html">Đăng nhập</a> để xem giỏ.</td></tr>';
+        '<tr><td colspan="6">Chưa đăng nhập. <a href="login.html">Đăng nhập</a> để xem giỏ.</td></tr>';
       if (hint) hint.textContent = "";
       if (checkoutCard) checkoutCard.style.display = "none";
       return;
@@ -47,7 +47,7 @@
 
         tbody.innerHTML = "";
         if (!cartItems.length) {
-          tbody.innerHTML = '<tr><td colspan="5" class="text-muted">Giỏ trống.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="6" class="text-muted">Giỏ trống.</td></tr>';
           if (checkoutCard) checkoutCard.style.display = "none";
           return;
         }
@@ -56,15 +56,19 @@
 
         cartItems.forEach(function (line) {
           var cid = line.course;
-          var qty = 1; // mỗi khóa học chỉ xuất hiện 1 lần trong giỏ
+          var qty = Math.max(1, Number(line.quantity) || 1);
           var course = courseById(courseMap, cid);
           var unit = 0;
           var imgSrc = "";
           if (course) {
-            unit = typeof course.price === "number" ? course.price : Number(course.price) || 0;
+            if (line.unitPriceVnd != null && Number.isFinite(Number(line.unitPriceVnd))) {
+              unit = Math.max(0, Math.round(Number(line.unitPriceVnd)));
+            } else {
+              unit = typeof course.price === "number" ? course.price : Number(course.price) || 0;
+            }
             imgSrc = course.images || "";
           }
-          var lineTotal = unit;
+          var lineTotal = unit * qty;
           grandTotal += lineTotal;
 
           var tr = document.createElement("tr");
@@ -83,6 +87,9 @@
             "</td>" +
             "<td>" +
             escapeHtml(OLApi.formatPriceVnd(unit)) +
+            "</td>" +
+            "<td>" +
+            escapeHtml(String(qty)) +
             "</td>" +
             "<td><strong>" +
             escapeHtml(OLApi.formatPriceVnd(lineTotal)) +
@@ -114,7 +121,7 @@
       })
       .catch(function (e) {
         tbody.innerHTML =
-          '<tr><td colspan="5" class="text-danger">Lỗi: ' + escapeHtml(e.message) + "</td></tr>";
+          '<tr><td colspan="6" class="text-danger">Lỗi: ' + escapeHtml(e.message) + "</td></tr>";
         if (checkoutCard) checkoutCard.style.display = "none";
       });
   }
